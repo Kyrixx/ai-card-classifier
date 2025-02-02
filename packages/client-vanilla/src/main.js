@@ -20,24 +20,39 @@ async function getVideoBuffer() {
 }
 
 async function triggerRecognition() {
-  const oldImage = document.getElementById('card');
-  if(oldImage) {
-    oldImage.remove();
+  function deleteCurrentImageFromDOM() {
+    const oldImage = document.getElementById('card');
+    if(oldImage) {
+      oldImage.remove();
+    }
   }
+
+  async function getRequestBody() {
+    let formData = new FormData();
+    formData.append(
+      'file',
+      new Blob([await getVideoBuffer()], { type: 'video/webm' }),
+      'video.webm'
+    );
+    return formData;
+  }
+
+  function addImageToDOM(imgUrl) {
+    const newImage = document.createElement('img');
+    newImage.id = 'card';
+    newImage.src = imgUrl;
+    newImage.alt = 'Example Image';
+    newImage.width = 488;
+    newImage.height = 680;
+    document.body.appendChild(newImage);
+  }
+
+  deleteCurrentImageFromDOM();
   loading = true;
-  let formData = new FormData();
-  formData.append(
-    'file',
-    new Blob([await getVideoBuffer()], { type: 'video/webm' }),
-    'video.webm'
-  );
-  const imgUrl = await fetch('http://localhost:3100/record', { method: 'POST', body: formData }).then((response) => response.text());
+  const imgUrl = await fetch(
+    'http://localhost:3100/record',
+    { method: 'POST', body: await getRequestBody() }
+  ).then((response) => response.text());
   loading = false;
-  const newImage = document.createElement('img');
-  newImage.id = 'card';
-  newImage.src = imgUrl;
-  newImage.alt = 'Example Image';
-  newImage.width = 488;
-  newImage.height = 680;
-  document.body.appendChild(newImage);
+  addImageToDOM(imgUrl);
 }
