@@ -19,7 +19,7 @@ async function getVideoBuffer() {
   });
 }
 
-async function handleClick() {
+async function triggerRecognition() {
   const oldImage = document.getElementById('card');
   if(oldImage) {
     oldImage.remove();
