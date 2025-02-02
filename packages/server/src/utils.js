@@ -7,9 +7,10 @@ async function getFrame(buffer) {
   console.log('File saved');
 
   const video = await (new ffmpeg('./video.webm'));
-  console.log('The video is ready to be processed');
   video.addCommand('-ss', '00:00:00');
   video.addCommand('-vframes', '1');
+  console.log('The video is ready to be processed');
+
   return new Promise((resolve, reject) => {
     video.save(`assets/frame-${Date.now()}.jpg`, (error, file) => {
       if (error) {
