@@ -3,6 +3,7 @@
   "packageManager": "npm@10.8.2",
   "scripts": {
     "start": "node -r dotenv/config src/main.js",
+    "start:server": "@start",
     "dev": "nodemon src/server/main.js"
   },
   "dependencies": {

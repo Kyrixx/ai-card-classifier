@@ -21,7 +21,7 @@ async function getVideoBuffer() {
 
 async function handleClick() {
   const oldImage = document.getElementById('card');
-  if(oldImage){
+  if(oldImage) {
     oldImage.remove();
   }
   loading = true;

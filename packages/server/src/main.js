@@ -28,6 +28,6 @@ app.post('/record', upload.single('file'), async (req, res) => {
   res.send(`${imageUrl}`);
 });
 
-app.listen(3100, '0.0.0.0', () => {
-  console.log(`Server is running on http://localhost:3100`);
+app.listen(parseInt(process.env.WEBSERVER_PORT), '0.0.0.0', () => {
+  console.log(`Server is running on http://localhost:${process.env.WEBSERVER_PORT}`);
 });
