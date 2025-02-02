@@ -1,0 +1,19 @@
+{
+  "name": "ai-card-classifier",
+  "packageManager": "npm@10.8.2",
+  "scripts": {
+    "start": "node -r dotenv/config src/main.js",
+    "dev": "nodemon src/server/main.js"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "axios": "^1.7.9",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "ffmpeg": "0.0.4",
+    "multer": "^1.4.5-lts.1",
+    "nodemon": "^3.1.9",
+    "socket.io": "^4.8.1"
+  }
+}

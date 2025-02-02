@@ -1,0 +1,10 @@
+{
+  "name": "ai-card-classifier",
+  "packageManager": "npm@10.8.2",
+  "scripts": {
+    "start": "http-server src/"
+  },
+  "dependencies": {
+    "http-server": "^14.1.1"
+  }
+}
