@@ -1,6 +1,8 @@
 node_modules/
 **/.env
 packages/server/assets/*.jpg
+**/cert.pem
+**/key.pem
 
 
 # User-specific stuff
