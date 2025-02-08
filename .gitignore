@@ -3,6 +3,7 @@ node_modules/
 packages/server/assets/*.jpg
 **/cert.pem
 **/key.pem
+**/dist
 
 
 # User-specific stuff

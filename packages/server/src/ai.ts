@@ -1,9 +1,9 @@
-const { GoogleGenerativeAI, SchemaType } = require('@google/generative-ai');
-const fs = require('fs');
-const sets = require('./sets.json');
-const { io } = require('./websocket');
+import { GoogleGenerativeAI, ResponseSchema, SchemaType } from '@google/generative-ai';
+import * as fs from 'fs';
+import { io } from './websocket';
+import sets from './sets.json';
 
-function fileToGenerativePart(path, mimeType) {
+function fileToGenerativePart(path: string, mimeType: string) {
   return {
     inlineData: {
       data: Buffer.from(fs.readFileSync(path)).toString("base64"),
@@ -12,34 +12,32 @@ function fileToGenerativePart(path, mimeType) {
   };
 }
 
-async function getAIInfo(filename) {
-  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+export async function getCardInfoFromAI(filename: string): Promise<string> {
+  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? '');
 
   let parse = [...JSON.parse(fs.readFileSync('./src/sets.json').toString())];
 
-  const schema = {
-    "type": "object",
-    "properties": {
-      "name": {
+  const schema: ResponseSchema = {
+    type: SchemaType.OBJECT,
+    properties: {
+      name: {
         type: SchemaType.STRING,
         nullable: false,
       },
-      "set": {
-        "type": SchemaType.STRING,
+      set: {
+        type: SchemaType.STRING,
         nullable: false,
         enum: parse,
       },
-      "collector_number": {
-        "type": SchemaType.INTEGER,
+      collector_number: {
+        type: SchemaType.INTEGER,
         nullable: false,
-        minimum: 1,
-        maximum: 999
       },
-      "foil": {
+      foil: {
         type: SchemaType.BOOLEAN
       }
     },
-    "required": ["name", "set", "collector_number"]
+    required: ["name", "set", "collector_number"]
   }
 
   const model = genAI.getGenerativeModel({
@@ -73,4 +71,3 @@ async function getAIInfo(filename) {
   return card;
 }
 
-module.exports = { getCardInfoFromAI: getAIInfo };

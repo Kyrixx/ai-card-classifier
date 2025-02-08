@@ -1,7 +1,7 @@
-const fs = require('fs');
-const ffmpeg = require('ffmpeg');
+import fs from 'fs';
+import ffmpeg from 'ffmpeg';
 
-async function getFrame(buffer) {
+export async function getFrameFromVideoBuffer(buffer: Buffer): Promise<string> {
   // Save new file
   fs.writeFileSync('video.webm', buffer);
   console.log('File saved');
@@ -23,5 +23,3 @@ async function getFrame(buffer) {
     });
   });
 }
-
-module.exports = { getFrameFromVideoBuffer: getFrame };

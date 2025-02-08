@@ -1,10 +1,12 @@
-const express = require('express');
-const cors = require('cors');
-const { getFrameFromVideoBuffer } = require('./utils');
-const { getCardInfoFromAI } = require('./ai');
-const { io, startWebsocketConnection } = require('./websocket');
-const multer = require('multer');
-const { getCardFromScryfall, getSetsFromScryfall } = require('./mtg');
+import express from 'express';
+import cors from 'cors';
+import { getFrameFromVideoBuffer } from './utils';
+import { getCardInfoFromAI } from './ai';
+import { io, startWebsocketConnection } from './websocket';
+import multer from 'multer';
+import { getCardFromScryfall, getSetsFromScryfall } from './mtg';
+
+
 const upload = multer({ storage: multer.memoryStorage() });
 
 startWebsocketConnection();
@@ -21,7 +23,7 @@ app.get('/trigger', (req, res) => {
 
 app.post('/record', upload.single('file'), async (req, res) => {
   io.emit('requested');
-  const frameFileName = await getFrameFromVideoBuffer(req.file.buffer);
+  const frameFileName: string = await getFrameFromVideoBuffer((req as any).file.buffer);
   const info = await getCardInfoFromAI(frameFileName);
   const json = JSON.parse(info);
   io.emit('waiting_scryfall');
@@ -35,6 +37,7 @@ app.get('/scryfall-sets', async (req, res) => {
   res.send(sets);
 })
 
-app.listen(parseInt(process.env.WEBSERVER_PORT), '0.0.0.0', () => {
+let port = process.env.WEBSERVER_PORT ?? "3100";
+app.listen(parseInt(port), '0.0.0.0', () => {
   console.log(`Server is running on http://localhost:${process.env.WEBSERVER_PORT}`);
 });
