@@ -39,5 +39,5 @@ app.get('/scryfall-sets', async (req, res) => {
 
 let port = process.env.WEBSERVER_PORT ?? "3100";
 app.listen(parseInt(port), '0.0.0.0', () => {
-  console.log(`Server is running on http://localhost:${process.env.WEBSERVER_PORT}`);
+  console.log(`Server is running on http://localhost:${port}`);
 });
