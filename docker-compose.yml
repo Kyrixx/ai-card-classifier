@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  server:
+    build:
+      context: ./packages/server
+      dockerfile: Dockerfile
+    env_file:
+      - ./packages/server/.env
+    volumes:
+      - ./packages/server/certs:/usr/src/app/certs
+    ports:
+      - "3100:3100"
+      - "3000:3000"
+
+  client:
+    build:
+      context: ./packages/client
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
