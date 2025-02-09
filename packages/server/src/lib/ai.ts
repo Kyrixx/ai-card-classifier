@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI, ResponseSchema, SchemaType } from '@google/generative-ai';
 import * as fs from 'fs';
 import { io } from './websocket';
-import sets from './sets.json';
+import sets from '../sets.json';
 
 function fileToGenerativePart(path: string, mimeType: string) {
   return {

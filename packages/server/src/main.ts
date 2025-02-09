@@ -1,10 +1,10 @@
 import express from 'express';
 import cors from 'cors';
-import { getFrameFromVideoBuffer } from './utils';
-import { getCardInfoFromAI } from './ai';
-import { io, startWebsocketConnection } from './websocket';
+import { getFrameFromVideoBuffer } from './lib/video';
+import { getCardInfoFromAI } from './lib/ai';
+import { io, startWebsocketConnection } from './lib/websocket';
 import multer from 'multer';
-import { getCardFromScryfall, getSetsFromScryfall } from './mtg';
+import { getCardFromScryfall, getSetsFromScryfall } from './lib/mtg';
 
 
 const upload = multer({ storage: multer.memoryStorage() });
