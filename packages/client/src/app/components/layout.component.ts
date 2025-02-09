@@ -46,16 +46,16 @@ enum RarityEnum {
 
       <div class="flex flex-col max-w-md mx-auto mt-4 bg-gray-200">
           <app-controls title="Common" (i)="increment(RarityEnum.Common)" (d)="decrement(RarityEnum.Common)">
-            {{ cardCounts['common'] }}
+            {{ cardCounts()['common'] }}
           </app-controls>
           <app-controls title="Uncommon" (i)="increment(RarityEnum.Uncommon)" (d)="decrement(RarityEnum.Uncommon)">
-            {{ cardCounts['uncommon'] }}
+            {{ cardCounts()['uncommon'] }}
           </app-controls>
           <app-controls title="Rare" (i)="increment(RarityEnum.Rare)" (d)="decrement(RarityEnum.Rare)">
-            {{ cardCounts['rare'] }}
+            {{ cardCounts()['rare'] }}
           </app-controls>
           <app-controls title="Mythic" (i)="increment(RarityEnum.Mythic)" (d)="decrement(RarityEnum.Mythic)">
-            {{ cardCounts['mythic'] }}
+            {{ cardCounts()['mythic'] }}
           </app-controls>
       </div>
 
@@ -63,15 +63,24 @@ enum RarityEnum {
         <p>Total : {{ totalPrice().toFixed(2) }} €</p>
       </div>
 
-      <div class="flex justify-evenly mt-4">
-        <button class="bg-blue-500 text-white px-6 py-2 rounded-md cursor-pointer" (click)="onClick()">Ask AI</button>
-        <button class="bg-blue-800 text-white px-6 py-2 rounded-md cursor-pointer" (click)="resetSession()">Reset Session</button>
+        <div class="flex justify-evenly mt-4">
+          <button class="bg-blue-500 text-white px-6 py-2 rounded-md cursor-pointer" (click)="onClick()">Ask AI</button>
+          <button class="bg-blue-800 text-white px-6 py-2 rounded-md cursor-pointer" (click)="resetSession()">Reset
+            Session
+          </button>
+        </div>
       </div>
-    </div>
+      <div class="flex flex-col flex-1 max-h-full items-center">
+        <div class="flex flex-col items-center min-w-full bg-blue-200">Salut</div>
+        <div class="flex flex-col items-center min-w-full bg-purple-200">Salut 2</div>
+        <video id="feedback" autoplay class="flex w-5/6" [srcObject]="stream"></video>
+      </div>
+
   `,
 })
-export class LayoutComponent implements OnInit{
+export class LayoutComponent implements OnInit {
   protected readonly RarityEnum = RarityEnum;
+  protected stream: MediaStream | null = null;
   protected readonly width: number = 300;
   private readonly emptySession: Record<RarityEnum, number> = {
     [RarityEnum.Common]: 0,
@@ -82,11 +91,11 @@ export class LayoutComponent implements OnInit{
 
   history: any[] = [];
   boosterId: number = 0;
-  totalPrice = signal<number>(0.0);
   card = signal<any>(null);
   loadingString = signal<string>("Waiting for request...");
-  cardCounts: Record<RarityEnum, number> = this.emptySession;
 
+  cardCounts = signal<Record<RarityEnum, number>>(this.emptySession);
+  totalPrice = signal<number>(0.0);
   readonly WebSocket = {
     Requested: 'requested',
     Clicked: 'clicked',
@@ -94,7 +103,7 @@ export class LayoutComponent implements OnInit{
     WaitingAI: 'waiting_ai',
     AIFinished: 'ai_finished',
     Finished: 'finished',
-  }
+  };
 
   readonly LoadingLabels: Record<Loading, string> = {
     [Loading.Clicked]: 'Detection requested',
@@ -103,7 +112,7 @@ export class LayoutComponent implements OnInit{
     [Loading.AIFinished]: 'Card detected',
     [Loading.WaitingScryfall]: 'Waiting for Scryfall response',
     [Loading.Finished]: 'Card Information retrieved',
-  }
+  };
 
   constructor(
     private readonly processorService: ProcessorService,
@@ -114,14 +123,14 @@ export class LayoutComponent implements OnInit{
 
   async ngOnInit() {
 
-    this.cardCounts = this.storage.getSession() ?? this.emptySession;
+    this.cardCounts.update(()=> this.storage.getSession() ?? this.emptySession);
     this.totalPrice.update(() => this.storage.get('price') ? parseFloat(this.storage.get('price')!) : 0.0);
-    await ProcessorService.triggerVideo();
+    this.stream = await ProcessorService.triggerVideo();
 
     this.websocket.on(this.WebSocket.Clicked, () => {
       this.loadingString.update(() => this.LoadingLabels[Loading.Clicked]);
       this.onClick();
-    })
+    });
 
     this.websocket.on(this.WebSocket.Requested, () => {
       this.loadingString.update(() => this.LoadingLabels[Loading.Requested]);
@@ -131,12 +140,12 @@ export class LayoutComponent implements OnInit{
     this.websocket.on(this.WebSocket.WaitingAI, () => {
       this.loadingString.update(() => this.LoadingLabels[Loading.WaitingAI]);
 
-    })
+    });
 
     this.websocket.on(this.WebSocket.AIFinished, () => {
       this.loadingString.update(() => this.LoadingLabels[Loading.AIFinished]);
 
-    })
+    });
 
     this.websocket.on(this.WebSocket.WaitingScryfall, () => {
       this.loadingString.update(() => this.LoadingLabels[Loading.WaitingScryfall]);
@@ -156,27 +165,34 @@ export class LayoutComponent implements OnInit{
       boosterId: this.boosterId,
     })
     this.totalPrice.update((price) => price + parseFloat(card.prices.eur));
-    this.cardCounts[`${card.rarity}` as RarityEnum]++;
+    this.increment(`${card.rarity}` as RarityEnum);
     this.saveSession();
   }
 
   saveSession() {
-    this.storage.saveSession(this.cardCounts);
-    this.storage.set('price', this.totalPrice().toString());
+    this.storage.saveSession(this.cardCounts());
+    this.storage.set('price', this.totalPrice.toString());
   }
 
   resetSession() {
     this.storage.resetSession();
-    this.cardCounts = this.emptySession;
+    this.cardCounts.update(() => this.emptySession);
+    this.totalPrice.update(() => 0.0);
   }
 
   increment(rarity: RarityEnum) {
-    this.cardCounts[rarity]++;
+    this.cardCounts.update(obj => {
+      obj[rarity]++;
+      return obj;
+    });
     this.saveSession();
   }
 
   decrement(rarity: RarityEnum) {
-    this.cardCounts[rarity]--;
+    this.cardCounts.update(obj => {
+      obj[rarity]--;
+      return obj;
+    });
     this.saveSession();
   }
 }
