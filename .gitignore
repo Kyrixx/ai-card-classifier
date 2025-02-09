@@ -4,6 +4,7 @@ packages/server/assets/*.jpg
 **/cert.pem
 **/key.pem
 **/dist
+**/*.exe
 
 
 # User-specific stuff
