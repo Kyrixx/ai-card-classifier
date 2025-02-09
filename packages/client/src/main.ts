@@ -4,7 +4,7 @@ import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 import { SocketIoModule } from 'ngx-socket-io';
 import { provideHttpClient } from '@angular/common/http';
-import { CoreComponent } from './app/core.component';
+import { CoreComponent } from './app/components/core.component';
 
 const appConfig: ApplicationConfig = {
   providers: [

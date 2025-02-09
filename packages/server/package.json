@@ -1,6 +1,8 @@
 {
   "name": "ai-card-classifier",
   "packageManager": "npm@10.8.2",
+  "main": "dist/main.js",
+  "bin": "dist/main.js",
   "scripts": {
     "start": "node -r dotenv/config dist/main.js",
     "start:server": "@start",
