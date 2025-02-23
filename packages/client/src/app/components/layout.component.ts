@@ -31,40 +31,32 @@ enum RarityEnum {
   template: `
     <div class="flex flex-col align-center max-w-sm border-2 border-gray-400 rounded-xl p-2">
       <section class="flex flex-col items-center min-h-auto">
-        <img *ngIf="imgUrl !== null" class="justify-center min-h-75" [src]="imgUrl" [width]="width"
+        <img *ngIf="card !== null" class="justify-center min-h-75" [src]="card?.image_uris.large" [width]="width"
              [height]="width*1.31"
              alt="Card" />
-        <div *ngIf="imgUrl === null"
+        <div *ngIf="card === null"
              class="w-75 h-98 rounded-xl bg-blue-100 flex items-center justify-center border-1 border-gray-400">
           {{ loadingString }}
         </div>
-        <div class="flex flex-row justify-evenly min-w-full">
-          <p>Set : {{ set | uppercase }}</p>
-          <p *ngIf="!!price" class="align-center">Prix : {{ price }} €</p>
+        <div *ngIf="card" class="flex flex-row justify-evenly min-w-full">
+          <p>Set : {{ card?.set | uppercase }}</p>
+          <p class="align-center">Prix : {{ card?.prices.eur }} €</p>
         </div>
       </section>
 
-      <div class="grid grid-cols-2 gap-4 max-w-sm mx-auto mt-4 bg-gray-200">
-        <div class="p-4 text-center flex items-center justify-center">Common :</div>
-        <div class="p-4 text-center">
-          {{ cardCounts['common'] }}&nbsp;
-          <app-controls (i)="increment(RarityEnum.Common)" (d)="decrement(RarityEnum.Common)"></app-controls>
-        </div>
-        <div class="p-4 text-center flex items-center justify-center">Uncommon :</div>
-        <div class="p-4 text-center">
-          {{ cardCounts['uncommon'] }}&nbsp;
-          <app-controls (i)="increment(RarityEnum.Uncommon)" (d)="decrement(RarityEnum.Uncommon)"></app-controls>
-        </div>
-        <div class="p-4 text-center flex items-center justify-center">Rare :</div>
-        <div class="p-4 text-center">
-          {{ cardCounts['rare'] }}&nbsp;
-          <app-controls (i)="increment(RarityEnum.Rare)" (d)="decrement(RarityEnum.Rare)"></app-controls>
-        </div>
-        <div class="p-4 text-center flex items-center justify-center">Mythic :</div>
-        <div class="p-4 text-center">
-          {{ cardCounts['mythic'] }}&nbsp;
-          <app-controls (i)="increment(RarityEnum.Mythic)" (d)="decrement(RarityEnum.Mythic)"></app-controls>
-        </div>
+      <div class="flex flex-col max-w-md mx-auto mt-4 bg-gray-200">
+          <app-controls title="Common" (i)="increment(RarityEnum.Common)" (d)="decrement(RarityEnum.Common)">
+            {{ cardCounts['common'] }}
+          </app-controls>
+          <app-controls title="Uncommon" (i)="increment(RarityEnum.Uncommon)" (d)="decrement(RarityEnum.Uncommon)">
+            {{ cardCounts['uncommon'] }}
+          </app-controls>
+          <app-controls title="Rare" (i)="increment(RarityEnum.Rare)" (d)="decrement(RarityEnum.Rare)">
+            {{ cardCounts['rare'] }}
+          </app-controls>
+          <app-controls title="Mythic" (i)="increment(RarityEnum.Mythic)" (d)="decrement(RarityEnum.Mythic)">
+            {{ cardCounts['mythic'] }}
+          </app-controls>
       </div>
 
       <div class="flex justify-center mt-4">
@@ -76,23 +68,26 @@ enum RarityEnum {
         <button class="bg-blue-800 text-white px-6 py-2 rounded-md cursor-pointer" (click)="resetSession()">Reset Session</button>
       </div>
     </div>
-
   `,
 })
 export class LayoutComponent implements OnInit{
   protected readonly RarityEnum = RarityEnum;
-  imgUrl: string | null = null;
-  price: string = "N/A";
-  totalPrice: number = 0.0;
-  width: number = 300;
-  set: string = "";
-  loadingString: string = "Waiting for request...";
+  protected readonly width: number = 300;
   private readonly emptySession: Record<RarityEnum, number> = {
     [RarityEnum.Common]: 0,
     [RarityEnum.Uncommon]: 0,
     [RarityEnum.Rare]: 0,
     [RarityEnum.Mythic]: 0,
   };
+
+  history: any[] = [];
+  boosterId: number = 0;
+  imgUrl: string | null = null;
+  price: string = "N/A";
+  totalPrice: number = 0.0;
+  set: string = "";
+  card: any = null;
+  loadingString: string = "Waiting for request...";
   cardCounts: Record<RarityEnum, number> = this.emptySession;
 
   readonly WebSocket = {
@@ -156,13 +151,15 @@ export class LayoutComponent implements OnInit{
   }
 
   async onClick() {
-    let card = await this.processorService.triggerRecognition();
-    this.imgUrl = card.image_uris.large;
-    this.price = card.prices.eur;
+    const card = await this.processorService.triggerRecognition();
+    this.card = card;
+    this.history.push({
+      card,
+      date: Date.now(),
+      boosterId: this.boosterId,
+    })
     this.totalPrice += parseFloat(card.prices.eur);
-    this.set = card.set;
     this.cardCounts[`${card.rarity}` as RarityEnum]++;
-    console.log(card);
     this.saveSession();
   }
 
