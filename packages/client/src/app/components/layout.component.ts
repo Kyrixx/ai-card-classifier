@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { NgIf, UpperCasePipe } from '@angular/common';
 import { ProcessorService } from '../services/processor.service';
 import { StorageService } from '../services/storage.service';
@@ -31,16 +31,16 @@ enum RarityEnum {
   template: `
     <div class="flex flex-col align-center max-w-sm border-2 border-gray-400 rounded-xl p-2">
       <section class="flex flex-col items-center min-h-auto">
-        <img *ngIf="card !== null" class="justify-center min-h-75" [src]="card?.image_uris.large" [width]="width"
+        <img *ngIf="card() !== null" class="justify-center min-h-75" [src]="card()?.image_uris.large" [width]="width"
              [height]="width*1.31"
              alt="Card" />
-        <div *ngIf="card === null"
+        <div *ngIf="card() === null"
              class="w-75 h-98 rounded-xl bg-blue-100 flex items-center justify-center border-1 border-gray-400">
-          {{ loadingString }}
+          {{ loadingString() }}
         </div>
-        <div *ngIf="card" class="flex flex-row justify-evenly min-w-full">
-          <p>Set : {{ card?.set | uppercase }}</p>
-          <p class="align-center">Prix : {{ card?.prices.eur }} €</p>
+        <div *ngIf="card()" class="flex flex-row justify-evenly min-w-full">
+          <p>Set : {{ card()?.set | uppercase }}</p>
+          <p class="align-center">Prix : {{ card()?.prices.eur }} €</p>
         </div>
       </section>
 
@@ -60,7 +60,7 @@ enum RarityEnum {
       </div>
 
       <div class="flex justify-center mt-4">
-        <p>Total : {{ totalPrice.toFixed(2) }} €</p>
+        <p>Total : {{ totalPrice().toFixed(2) }} €</p>
       </div>
 
       <div class="flex justify-evenly mt-4">
@@ -82,12 +82,9 @@ export class LayoutComponent implements OnInit{
 
   history: any[] = [];
   boosterId: number = 0;
-  imgUrl: string | null = null;
-  price: string = "N/A";
-  totalPrice: number = 0.0;
-  set: string = "";
-  card: any = null;
-  loadingString: string = "Waiting for request...";
+  totalPrice = signal<number>(0.0);
+  card = signal<any>(null);
+  loadingString = signal<string>("Waiting for request...");
   cardCounts: Record<RarityEnum, number> = this.emptySession;
 
   readonly WebSocket = {
@@ -118,54 +115,54 @@ export class LayoutComponent implements OnInit{
   async ngOnInit() {
 
     this.cardCounts = this.storage.getSession() ?? this.emptySession;
-    this.totalPrice = this.storage.get('price') ? parseFloat(this.storage.get('price')!) : 0.0;
+    this.totalPrice.update(() => this.storage.get('price') ? parseFloat(this.storage.get('price')!) : 0.0);
     await ProcessorService.triggerVideo();
 
     this.websocket.on(this.WebSocket.Clicked, () => {
-      this.loadingString = this.LoadingLabels[Loading.Clicked];
+      this.loadingString.update(() => this.LoadingLabels[Loading.Clicked]);
       this.onClick();
     })
 
     this.websocket.on(this.WebSocket.Requested, () => {
-      this.loadingString = this.LoadingLabels[Loading.Requested];
-      this.imgUrl = null;
+      this.loadingString.update(() => this.LoadingLabels[Loading.Requested]);
+      this.card.update(() => null);
     })
 
     this.websocket.on(this.WebSocket.WaitingAI, () => {
-      this.loadingString = this.LoadingLabels[Loading.WaitingAI];
+      this.loadingString.update(() => this.LoadingLabels[Loading.WaitingAI]);
 
     })
 
     this.websocket.on(this.WebSocket.AIFinished, () => {
-      this.loadingString = this.LoadingLabels[Loading.AIFinished];
+      this.loadingString.update(() => this.LoadingLabels[Loading.AIFinished]);
 
     })
 
     this.websocket.on(this.WebSocket.WaitingScryfall, () => {
-      this.loadingString = this.LoadingLabels[Loading.WaitingScryfall];
+      this.loadingString.update(() => this.LoadingLabels[Loading.WaitingScryfall]);
     })
 
     this.websocket.on(this.WebSocket.Finished, () => {
-      this.loadingString = this.LoadingLabels[Loading.Finished];
+      this.loadingString.update(() => this.LoadingLabels[Loading.Finished]);
     })
   }
 
   async onClick() {
     const card = await this.processorService.triggerRecognition();
-    this.card = card;
+    this.card.update(() => card);
     this.history.push({
       card,
       date: Date.now(),
       boosterId: this.boosterId,
     })
-    this.totalPrice += parseFloat(card.prices.eur);
+    this.totalPrice.update((price) => price + parseFloat(card.prices.eur));
     this.cardCounts[`${card.rarity}` as RarityEnum]++;
     this.saveSession();
   }
 
   saveSession() {
     this.storage.saveSession(this.cardCounts);
-    this.storage.set('price', this.totalPrice.toString());
+    this.storage.set('price', this.totalPrice().toString());
   }
 
   resetSession() {
