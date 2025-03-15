@@ -14,4 +14,6 @@
         X-XSS-Protection "1; mode=block"
         Referrer-Policy "no-referrer-when-downgrade"
     }
+
+    tls ../../certs/cert.pem ../../certs/key.pem
 }

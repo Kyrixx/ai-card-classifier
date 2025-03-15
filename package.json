@@ -1,0 +1,12 @@
+{
+  "packageManager": "npm@10.8.2",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "start": "turbo run start"
+  },
+  "dependencies": {
+    "turbo": "^2.4.4"
+  }
+}
