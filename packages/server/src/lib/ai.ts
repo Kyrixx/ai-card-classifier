@@ -20,6 +20,10 @@ export async function getCardInfoFromAI(filename: string): Promise<string> {
   const schema: ResponseSchema = {
     type: SchemaType.OBJECT,
     properties: {
+      error: {
+        type: SchemaType.BOOLEAN,
+        nullable: false,
+      },
       name: {
         type: SchemaType.STRING,
         nullable: false,
@@ -51,6 +55,10 @@ export async function getCardInfoFromAI(filename: string): Promise<string> {
   const asset = fileToGenerativePart(filename, 'image/jpeg');
   const prompt =
     `You are an expert in Magic: The Gathering trading card game. 
+    You are tasked to determine if the given image contains a Magic: The Gathering card.
+    If it doesn't contain a card, you should return an error status.
+    
+    If it does contain a card :
     Extract the name, set code, foilness and the collector number from the given image.
     A set code is a string of 3 or 4 characters.
     List of valid of set code : ${sets.join(', ')}.
@@ -61,7 +69,9 @@ export async function getCardInfoFromAI(filename: string): Promise<string> {
     You MUST find the card name at the top of the card.
     You MUST find the set code at the bottom left of the card.
     You MUST find the collector number at the bottom left of the card.
-    You MUST find the foil attribute at the bottom left of the card.
+    You MUST find the foil attribute at the bottom left of the card, next to the set code.
+    
+    Then, error should be false.
     `;
 
   io.emit('waiting_ai');
