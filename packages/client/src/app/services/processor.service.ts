@@ -12,8 +12,8 @@ export class ProcessorService {
 
   static async triggerVideo(): Promise<MediaStream> {
     if (!ProcessorService.mediaRecorder) {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      ProcessorService.mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm' });
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { width: { ideal: 1920 }, height: { ideal: 1080 } } });
+      ProcessorService.mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm', videoBitsPerSecond: 8192000 });
     }
 
     return ProcessorService.mediaRecorder.stream

@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, HostListener, OnInit, signal } from '@angular/core';
 import { NgIf, UpperCasePipe } from '@angular/common';
 import { ProcessorService } from '../services/processor.service';
 import { StorageService } from '../services/storage.service';
@@ -12,6 +12,7 @@ enum Loading {
   WaitingAI,
   AIFinished,
   Finished,
+  Error,
 }
 
 enum RarityEnum {
@@ -45,38 +46,43 @@ enum RarityEnum {
       </section>
 
       <div class="flex flex-col max-w-md mx-auto mt-4 bg-gray-200">
-          <app-controls title="Common" (i)="increment(RarityEnum.Common)" (d)="decrement(RarityEnum.Common)">
-            {{ cardCounts()['common'] }}
-          </app-controls>
-          <app-controls title="Uncommon" (i)="increment(RarityEnum.Uncommon)" (d)="decrement(RarityEnum.Uncommon)">
-            {{ cardCounts()['uncommon'] }}
-          </app-controls>
-          <app-controls title="Rare" (i)="increment(RarityEnum.Rare)" (d)="decrement(RarityEnum.Rare)">
-            {{ cardCounts()['rare'] }}
-          </app-controls>
-          <app-controls title="Mythic" (i)="increment(RarityEnum.Mythic)" (d)="decrement(RarityEnum.Mythic)">
-            {{ cardCounts()['mythic'] }}
-          </app-controls>
+        <app-controls title="Common" (i)="increment(RarityEnum.Common)" (d)="decrement(RarityEnum.Common)">
+          {{ cardCounts()['common'] }}
+        </app-controls>
+        <app-controls title="Uncommon" (i)="increment(RarityEnum.Uncommon)" (d)="decrement(RarityEnum.Uncommon)">
+          {{ cardCounts()['uncommon'] }}
+        </app-controls>
+        <app-controls title="Rare" (i)="increment(RarityEnum.Rare)" (d)="decrement(RarityEnum.Rare)">
+          {{ cardCounts()['rare'] }}
+        </app-controls>
+        <app-controls title="Mythic" (i)="increment(RarityEnum.Mythic)" (d)="decrement(RarityEnum.Mythic)">
+          {{ cardCounts()['mythic'] }}
+        </app-controls>
       </div>
 
       <div class="flex justify-center mt-4">
         <p>Total : {{ totalPrice().toFixed(2) }} €</p>
       </div>
 
-        <div class="flex justify-evenly mt-4">
-          <button class="bg-blue-500 text-white px-6 py-2 rounded-md cursor-pointer" (click)="onClick()">Ask AI</button>
-          <button class="bg-blue-800 text-white px-6 py-2 rounded-md cursor-pointer" (click)="resetSession()">Reset
-            Session
-          </button>
-        </div>
+      <div class="flex justify-evenly mt-4">
+        <button class="bg-blue-500 text-white px-6 py-2 rounded-md cursor-pointer" (click)="onClick()">Ask AI</button>
+        <button class="bg-blue-800 text-white px-6 py-2 rounded-md cursor-pointer" (click)="resetSession()">Reset
+          Session
+        </button>
       </div>
-      <div class="flex flex-col flex-1 max-h-full items-center">
-        <div class="flex flex-col items-center min-w-full bg-blue-200">Salut</div>
-        <div class="flex flex-col items-center min-w-full bg-purple-200">Salut 2</div>
-        <video id="feedback" autoplay class="flex w-5/6" [srcObject]="stream"></video>
-      </div>
+    </div>
+    <div class="flex flex-col flex-1 max-h-full items-center">
+      <div class="flex flex-col items-center bg-blue-200 min-w-full">Salut</div>
+      <div class="flex flex-col items-center bg-purple-200">Salut 2</div>
+      <video id="feedback" autoplay class="flex w-5/6" [srcObject]="stream"></video>
+    </div>
 
   `,
+  styles: `
+    :host {
+      display: flex;
+    }
+    `,
 })
 export class LayoutComponent implements OnInit {
   protected readonly RarityEnum = RarityEnum;
@@ -103,6 +109,7 @@ export class LayoutComponent implements OnInit {
     WaitingAI: 'waiting_ai',
     AIFinished: 'ai_finished',
     Finished: 'finished',
+    Error: 'error',
   };
 
   readonly LoadingLabels: Record<Loading, string> = {
@@ -112,6 +119,7 @@ export class LayoutComponent implements OnInit {
     [Loading.AIFinished]: 'Card detected',
     [Loading.WaitingScryfall]: 'Waiting for Scryfall response',
     [Loading.Finished]: 'Card Information retrieved',
+    [Loading.Error]: 'No card detected',
   };
 
   constructor(
@@ -122,7 +130,6 @@ export class LayoutComponent implements OnInit {
   }
 
   async ngOnInit() {
-
     this.cardCounts.update(()=> this.storage.getSession() ?? this.emptySession);
     this.totalPrice.update(() => this.storage.get('price') ? parseFloat(this.storage.get('price')!) : 0.0);
     this.stream = await ProcessorService.triggerVideo();
@@ -154,9 +161,18 @@ export class LayoutComponent implements OnInit {
     this.websocket.on(this.WebSocket.Finished, () => {
       this.loadingString.update(() => this.LoadingLabels[Loading.Finished]);
     })
+
+    this.websocket.on(this.WebSocket.Error, () => {
+      this.loadingString.update(() => this.LoadingLabels[Loading.Error]);
+    })
   }
 
-  async onClick() {
+  @HostListener('window:keydown', ['$event'])
+  async onClick(event?: KeyboardEvent) {
+    if (!!event && event.key !== 'Enter') {
+      console.log('ha')
+      return;
+    }
     const card = await this.processorService.triggerRecognition();
     this.card.update(() => card);
     this.history.push({
