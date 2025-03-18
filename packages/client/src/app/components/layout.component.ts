@@ -64,15 +64,17 @@ enum RarityEnum {
         <p>Total : {{ totalPrice().toFixed(2) }} €</p>
       </div>
 
-      <div class="flex justify-evenly mt-4">
-        <button class="bg-blue-500 text-white px-6 py-2 rounded-md cursor-pointer" (click)="onClick()">Ask AI</button>
-        <button class="bg-blue-800 text-white px-6 py-2 rounded-md cursor-pointer" (click)="resetSession()">Reset
+      <div class="flex justify-evenly mt-4 flex-wrap">
+        <button class="bg-blue-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1" (click)="onClick()">Ask AI</button>
+        <button class="bg-blue-800 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1" (click)="resetSession()">Reset
           Session
         </button>
+        <button class="bg-green-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1" (click)="nextBooster()">Next booster</button>
+        <button class="bg-red-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1" (click)="back()">Nop !</button>
       </div>
     </div>
     <div class="flex flex-col flex-1 max-h-full items-center">
-      <div class="flex flex-col items-center bg-blue-200 min-w-full">Salut</div>
+      <div class="flex flex-col items-center bg-blue-200 min-w-full">Booster n°{{ boosterId() }}</div>
       <div class="flex flex-col items-center bg-purple-200">Salut 2</div>
       <video id="feedback" autoplay class="flex w-5/6" [srcObject]="stream"></video>
     </div>
@@ -96,7 +98,7 @@ export class LayoutComponent implements OnInit {
   };
 
   history: any[] = [];
-  boosterId: number = 0;
+  boosterId = signal<number>(1);
   card = signal<any>(null);
   loadingString = signal<string>("Waiting for request...");
 
@@ -130,47 +132,46 @@ export class LayoutComponent implements OnInit {
   }
 
   async ngOnInit() {
-    this.cardCounts.update(()=> this.storage.getSession() ?? this.emptySession);
-    this.totalPrice.update(() => this.storage.get('price') ? parseFloat(this.storage.get('price')!) : 0.0);
+    this.cardCounts.set(this.storage.getSession() ?? this.emptySession);
+    this.totalPrice.set(this.storage.get('price') ? parseFloat(this.storage.get('price')!) : 0.0);
     this.stream = await ProcessorService.triggerVideo();
 
     this.websocket.on(this.WebSocket.Clicked, () => {
-      this.loadingString.update(() => this.LoadingLabels[Loading.Clicked]);
+      this.loadingString.set(this.LoadingLabels[Loading.Clicked]);
       this.onClick();
     });
 
     this.websocket.on(this.WebSocket.Requested, () => {
-      this.loadingString.update(() => this.LoadingLabels[Loading.Requested]);
+      this.loadingString.set(this.LoadingLabels[Loading.Requested]);
       this.card.update(() => null);
     })
 
     this.websocket.on(this.WebSocket.WaitingAI, () => {
-      this.loadingString.update(() => this.LoadingLabels[Loading.WaitingAI]);
+      this.loadingString.set(this.LoadingLabels[Loading.WaitingAI]);
 
     });
 
     this.websocket.on(this.WebSocket.AIFinished, () => {
-      this.loadingString.update(() => this.LoadingLabels[Loading.AIFinished]);
+      this.loadingString.set(this.LoadingLabels[Loading.AIFinished]);
 
     });
 
     this.websocket.on(this.WebSocket.WaitingScryfall, () => {
-      this.loadingString.update(() => this.LoadingLabels[Loading.WaitingScryfall]);
+      this.loadingString.set(this.LoadingLabels[Loading.WaitingScryfall]);
     })
 
     this.websocket.on(this.WebSocket.Finished, () => {
-      this.loadingString.update(() => this.LoadingLabels[Loading.Finished]);
+      this.loadingString.set(this.LoadingLabels[Loading.Finished]);
     })
 
     this.websocket.on(this.WebSocket.Error, () => {
-      this.loadingString.update(() => this.LoadingLabels[Loading.Error]);
+      this.loadingString.set(this.LoadingLabels[Loading.Error]);
     })
   }
 
   @HostListener('window:keydown', ['$event'])
   async onClick(event?: KeyboardEvent) {
     if (!!event && event.key !== 'Enter') {
-      console.log('ha')
       return;
     }
     const card = await this.processorService.triggerRecognition();
@@ -185,6 +186,19 @@ export class LayoutComponent implements OnInit {
     this.saveSession();
   }
 
+  back() {
+    const removedCard = this.history.pop()?.card;
+    let card1 = this.history.at(-1)?.card ?? null;
+    this.card.set(card1);
+    this.totalPrice.update((price) => price - parseFloat(removedCard.prices.eur));
+    this.decrement(`${removedCard.rarity}` as RarityEnum);
+    this.saveSession();
+  }
+
+  nextBooster() {
+    this.boosterId.update((id) => id + 1);
+  }
+
   saveSession() {
     this.storage.saveSession(this.cardCounts());
     this.storage.set('price', this.totalPrice.toString());
@@ -192,8 +206,10 @@ export class LayoutComponent implements OnInit {
 
   resetSession() {
     this.storage.resetSession();
-    this.cardCounts.update(() => this.emptySession);
-    this.totalPrice.update(() => 0.0);
+    this.cardCounts.set(this.emptySession);
+    this.card.set(null);
+    this.totalPrice.set(0.0);
+    this.loadingString.set("Waiting for request...");
   }
 
   increment(rarity: RarityEnum) {
