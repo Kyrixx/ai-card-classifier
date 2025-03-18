@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI, ResponseSchema, SchemaType } from '@google/generative-ai';
 import * as fs from 'fs';
 import { io } from './websocket';
-import { sets } from './sets';
+import { fetchSets, sets } from './sets';
 
 function fileToGenerativePart(path: string, mimeType: string) {
   return {
@@ -15,7 +15,7 @@ function fileToGenerativePart(path: string, mimeType: string) {
 export async function getCardInfoFromAI(filename: string): Promise<string> {
   const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY ?? '');
 
-  let parse = sets.map((set) => set.toUpperCase());
+  let parse = (await fetchSets()).map((set) => set.toUpperCase());
 
   const schema: ResponseSchema = {
     type: SchemaType.OBJECT,
@@ -26,16 +26,13 @@ export async function getCardInfoFromAI(filename: string): Promise<string> {
       },
       name: {
         type: SchemaType.STRING,
-        nullable: false,
       },
       set: {
         type: SchemaType.STRING,
-        nullable: false,
         enum: parse,
       },
       collector_number: {
         type: SchemaType.INTEGER,
-        nullable: false,
       },
       foil: {
         type: SchemaType.BOOLEAN
