@@ -17,6 +17,10 @@ import { Card } from '../models/scryfall';
   ],
   template: `
     <div class="flex flex-col align-center max-w-sm border-2 border-gray-400 rounded-xl p-2">
+      <div class="flex flex-row items-center justify-center mb-4">
+        <p>Total : {{ totalPrice().toFixed(2) }} € | Booster : {{ boosterId() }}</p>
+      </div>
+
       <app-card-display
         [card]="card()"
         [loadingState]="webSocketState()"
@@ -42,11 +46,6 @@ import { Card } from '../models/scryfall';
           <div class="px-4 py-2 text-center flex items-center justify-center w-1/2 whitespace-nowrap">Mythic :</div>
           <div class="px-4 py-2 text-center w-1/2">{{ cardCounts()['mythic'] }}</div>
         </div>
-      </div>
-
-      <div class="flex flex-col items-center justify-center mt-4">
-        <p>Total : {{ totalPrice().toFixed(2) }} €</p>
-        <p>Booster : {{ boosterId() }}</p>
       </div>
 
       <div class="flex justify-evenly mt-4 flex-wrap">
@@ -112,6 +111,7 @@ import { Card } from '../models/scryfall';
   `,
 })
 export class LayoutComponent implements OnInit {
+  protected readonly Loading = Loading;
   protected stream: MediaStream | null = null;
   protected readonly width: number = 300;
 
@@ -238,8 +238,6 @@ export class LayoutComponent implements OnInit {
     this.boosterId.set(1);
     this.webSocketState.set(Loading.Initial);
   }
-
-  protected readonly Loading = Loading;
 
   handleItemClicked(event: any) {
     console.log(event);
