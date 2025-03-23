@@ -6,6 +6,7 @@ packages/server/assets/*.jpg
 **/dist
 **/*.exe
 .turbo
+.idea/dataSources.xml
 
 
 # User-specific stuff
