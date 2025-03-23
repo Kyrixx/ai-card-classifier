@@ -1,9 +1,15 @@
 import axios from 'axios';
 
 export async function getCardFromScryfall(set: string, collector_number: number) {
-  return axios.get(`https://api.scryfall.com/cards/${set}/${collector_number}`)
-    .then((response) => response.data)
-    .catch((error) => console.log(`https://api.scryfall.com/cards/${set}/${collector_number}/fr`));
+  try {
+    const frResp = await axios.get(`https://api.scryfall.com/cards/${set}/${collector_number}/fr`)
+      .then((response) => response.data)
+    return frResp;
+  } catch (e) {
+    return axios.get(`https://api.scryfall.com/cards/${set}/${collector_number}`)
+      .then((response) => response.data)
+      .catch((error) => console.log(`[mtg] https://api.scryfall.com/cards/${set}/${collector_number}`));
+  }
 }
 
 export async function getSetsFromScryfall() {
