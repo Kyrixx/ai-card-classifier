@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, input, output } from '@angular/core';
 import { BoosterAccordionComponent } from './booster-accordion.component';
 import { CdkAccordion } from '@angular/cdk/accordion';
 import { HistoryItem } from '../models/history-item';
@@ -12,7 +12,8 @@ import { HistoryItem } from '../models/history-item';
         <booster-accordion-item
           [boosterNumber]="bid"
           [items]="getCardForBooster(bid)"
-          [isActive]="bid === boosterId"
+          [isBoosterActive]="bid === boosterId()"
+          (activatedItem)="onItemClick.emit($event)"
         ></booster-accordion-item>
       }
     </cdk-accordion>
@@ -28,17 +29,18 @@ import { HistoryItem } from '../models/history-item';
   ],
 })
 export class BoosterListComponent {
-  @Input() history: HistoryItem[] = [];
-  @Input() boosterId: number = 1;
+  history = input<HistoryItem[]>([]);
+  boosterId = input(1);
+  onItemClick = output<HistoryItem>();
 
   getCardForBooster(boosterId: number): HistoryItem[] {
-    return this.history.filter(h => h.boosterId === boosterId);
+    return this.history().filter(h => h.boosterId === boosterId);
   }
 
   uniqueBoosterIds(): number[] {
-    const boosterIdsFromHistory = Array.from(new Set(this.history.map((h) => h.boosterId)));
-    if (this.boosterId > boosterIdsFromHistory.length) {
-      boosterIdsFromHistory.push(this.boosterId);
+    const boosterIdsFromHistory = Array.from(new Set(this.history().map((h) => h.boosterId)));
+    if (this.boosterId() > boosterIdsFromHistory.length) {
+      boosterIdsFromHistory.push(this.boosterId());
     }
     return boosterIdsFromHistory;
   }

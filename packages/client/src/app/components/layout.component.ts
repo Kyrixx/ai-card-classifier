@@ -7,6 +7,7 @@ import { RarityEnum } from '../models/rarity.enum';
 import { BoosterListComponent } from './booster-list.component';
 import { Loading } from '../models/loading.enum';
 import { CardDisplayComponent } from './card-display.component';
+import { Card } from '../models/scryfall';
 
 @Component({
   selector: 'app-layout',
@@ -63,13 +64,19 @@ import { CardDisplayComponent } from './card-display.component';
         </button>
       </div>
     </div>
-    <app-booster-list [history]="history()" [boosterId]="boosterId()" class="max-w-md"></app-booster-list>
+
+    <app-booster-list
+      [history]="history()"
+      [boosterId]="boosterId()"
+      (onItemClick)="handleItemClicked($event)"
+      class="max-w-3xl"
+    ></app-booster-list>
 
     <div
       class="flex flex-col flex-1 max-h-full items-center"
       [class.video-container]="webSocketState() === Loading.Requested"
     >
-      <video id="feedback" autoplay class="flex w-5/6" [srcObject]="stream"></video>
+      <video id="feedback" autoplay class="flex" [srcObject]="stream"></video>
     </div>
 
   `,
@@ -108,8 +115,9 @@ export class LayoutComponent implements OnInit {
   protected readonly width: number = 300;
 
   history = signal<HistoryItem[]>([]);
+  currentHistoryItem = signal<HistoryItem | null>(null);
   boosterId = signal<number>(1);
-  card = signal<any>(null);
+  card = computed<Card | null>(() => this.currentHistoryItem()?.card ?? null);
   cardCounts = computed<Record<RarityEnum, number>>(() => {
     return this.history().reduce((acc: Record<RarityEnum, number>, h: HistoryItem) => {
       acc[h.card.rarity]++;
@@ -150,7 +158,7 @@ export class LayoutComponent implements OnInit {
   loadSession() {
     this.totalPrice.set(!!this.storage.get('price') ? parseFloat(this.storage.get('price')!) : 0.0);
     this.history.set(JSON.parse(this.storage.get('history') ?? '[]'));
-    this.card.set(this.history().at(-1)?.card ?? null);
+    this.currentHistoryItem.set(this.history().at(-1) ?? null);
   }
 
   listenWebsocketEvents() {
@@ -161,7 +169,7 @@ export class LayoutComponent implements OnInit {
 
     this.websocket.on(this.WebSocketEvent[Loading.Requested], () => {
       this.webSocketState.set(Loading.Requested);
-      this.card.set(null);
+      this.currentHistoryItem.set(null);
     });
 
     this.websocket.on(this.WebSocketEvent[Loading.WaitingAI], () => {
@@ -186,31 +194,32 @@ export class LayoutComponent implements OnInit {
   }
 
   @HostListener('window:keydown', ['$event'])
-  handleKeyDown(event: KeyboardEvent) {
+  async handleKeyDown(event: KeyboardEvent) {
     if (!!event && event.key !== 'Enter') {
       return;
     }
     event.preventDefault();
-    this.onClick();
+    await this.onClick();
   }
 
   async onClick() {
-    this.card.set(null);
-    const card = await this.processorService.triggerRecognition();
-    this.card.set(card);
-    this.history.set([...this.history(), {
-      card,
+    this.currentHistoryItem.set(null);
+    const historyItem = {
+      card: await this.processorService.triggerRecognition(),
       date: Date.now(),
       boosterId: this.boosterId(),
-    }]);
-    this.totalPrice.update((price) => price + parseFloat(card?.prices?.eur ?? '0.0'));
+    };
+    this.history.set([...this.history(), historyItem]);
+    this.currentHistoryItem.set(historyItem);
+
+    this.totalPrice.update((price) => price + parseFloat(this.card()?.prices?.eur ?? '0.0'));
     this.saveSession();
   }
 
   back() {
     const removedCard = this.history().at(-1)?.card ?? null;
     this.history.set(this.history().slice(0, -1));
-    this.card.set(this.history().at(-1)?.card ?? null);
+    this.currentHistoryItem.set(this.history().at(-1) ?? null);
     this.totalPrice.update((price) => price - parseFloat(removedCard?.prices?.eur ?? '0.0'));
     this.saveSession();
   }
@@ -226,7 +235,7 @@ export class LayoutComponent implements OnInit {
 
   resetSession() {
     this.storage.resetSession();
-    this.card.set(null);
+    this.currentHistoryItem.set(null);
     this.totalPrice.set(0.0);
     this.history.set([]);
     this.boosterId.set(1);
@@ -234,4 +243,9 @@ export class LayoutComponent implements OnInit {
   }
 
   protected readonly Loading = Loading;
+
+  handleItemClicked(event: any) {
+    console.log(event);
+    this.currentHistoryItem.set(event);
+  }
 }
