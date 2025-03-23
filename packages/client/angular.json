@@ -68,7 +68,10 @@
               "buildTarget": "client:build:production"
             },
             "development": {
-              "buildTarget": "client:build:development"
+              "buildTarget": "client:build:development",
+              "ssl": true,
+              "sslKey": "../../certs/ca/server.key",
+              "sslCert": "../../certs/ca/server.crt"
             }
           },
           "defaultConfiguration": "development"
