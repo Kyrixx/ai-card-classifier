@@ -1,9 +1,11 @@
-import { Component, HostListener, OnInit, signal } from '@angular/core';
+import { Component, HostListener, OnInit, signal, computed } from '@angular/core';
 import { NgIf, UpperCasePipe } from '@angular/common';
 import { ProcessorService } from '../services/processor.service';
 import { StorageService } from '../services/storage.service';
 import { Socket } from 'ngx-socket-io';
 import { ControlsComponent } from './controls.component';
+import { CdkAccordion } from '@angular/cdk/accordion';
+import { BoosterAccordionComponent } from './booster-accordion.component';
 
 enum Loading {
   Requested,
@@ -28,6 +30,8 @@ enum RarityEnum {
     NgIf,
     UpperCasePipe,
     ControlsComponent,
+    CdkAccordion,
+    BoosterAccordionComponent,
   ],
   template: `
     <div class="flex flex-col align-center max-w-sm border-2 border-gray-400 rounded-xl p-2">
@@ -41,7 +45,7 @@ enum RarityEnum {
         </div>
         <div *ngIf="card()" class="flex flex-row justify-evenly min-w-full">
           <p>Set : {{ card()?.set | uppercase }}</p>
-          <p class="align-center">Prix : {{ card()?.prices.eur }} €</p>
+          <p class="align-center">Prix : {{ card()?.prices?.eur ?? 'N/A' }} €</p>
         </div>
       </section>
 
@@ -60,8 +64,9 @@ enum RarityEnum {
         </app-controls>
       </div>
 
-      <div class="flex justify-center mt-4">
+      <div class="flex flex-col items-center justify-center mt-4">
         <p>Total : {{ totalPrice().toFixed(2) }} €</p>
+        <p>Booster : {{ boosterId() }}</p>
       </div>
 
       <div class="flex justify-evenly mt-4 flex-wrap">
@@ -73,16 +78,25 @@ enum RarityEnum {
         <button class="bg-red-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1" (click)="back()">Nop !</button>
       </div>
     </div>
+    <div class="flex flex-col flex-1 max-h-full items-center max-w-md">
+      <cdk-accordion class="w-full">
+        @for (bid of uniqueBoosterIds(); track bid) {
+          <booster-accordion-item
+            [boosterNumber]="bid"
+            [cards]="getCardForBooster(bid)"
+            [isActive]="bid === boosterId()"
+          ></booster-accordion-item>
+        }
+      </cdk-accordion>
+    </div>
     <div class="flex flex-col flex-1 max-h-full items-center">
-      <div class="flex flex-col items-center bg-blue-200 min-w-full">Booster n°{{ boosterId() }}</div>
-      <div class="flex flex-col items-center bg-purple-200">Salut 2</div>
       <video id="feedback" autoplay class="flex w-5/6" [srcObject]="stream"></video>
     </div>
 
   `,
   styles: `
     :host {
-      display: flex;
+      @apply flex;
     }
     `,
 })
@@ -97,7 +111,15 @@ export class LayoutComponent implements OnInit {
     [RarityEnum.Mythic]: 0,
   };
 
-  history: any[] = [];
+  _history: any[] = [];
+  history = signal<any[]>([]);
+  uniqueBoosterIds = computed<number[]>(() => {
+    const boosterIdsFromHistory = Array.from(new Set(this.history().map((h) => h.boosterId)));
+    if(this.boosterId() > boosterIdsFromHistory.length) {
+      boosterIdsFromHistory.push(this.boosterId());
+    }
+    return boosterIdsFromHistory
+  });
   boosterId = signal<number>(1);
   card = signal<any>(null);
   loadingString = signal<string>("Waiting for request...");
@@ -133,11 +155,11 @@ export class LayoutComponent implements OnInit {
 
   async ngOnInit() {
     this.cardCounts.set(this.storage.getSession() ?? this.emptySession);
-    this.totalPrice.set(this.storage.get('price') ? parseFloat(this.storage.get('price')!) : 0.0);
+    this.totalPrice.set(!!this.storage.get('price') ? parseFloat(this.storage.get('price')!) : 0.0);
     this.stream = await ProcessorService.triggerVideo();
 
     this.websocket.on(this.WebSocket.Clicked, () => {
-      this.loadingString.set(this.LoadingLabels[Loading.Clicked]);
+      this.loadingString.set(this.LoadingLabels[Loading['Clicked']]);
       this.onClick();
     });
 
@@ -174,23 +196,31 @@ export class LayoutComponent implements OnInit {
     if (!!event && event.key !== 'Enter') {
       return;
     }
+    event?.preventDefault();
     const card = await this.processorService.triggerRecognition();
-    this.card.update(() => card);
-    this.history.push({
+    this.card.set(card);
+    console.log(card);
+    this._history.push({
       card,
       date: Date.now(),
-      boosterId: this.boosterId,
+      boosterId: this.boosterId(),
     })
-    this.totalPrice.update((price) => price + parseFloat(card.prices.eur));
+    this.history.update((history) => [...history, {
+      card,
+      date: Date.now(),
+      boosterId: this.boosterId(),
+    }]);
+    this.totalPrice.update((price) => price + parseFloat(card?.prices?.eur ?? '0.0'));
     this.increment(`${card.rarity}` as RarityEnum);
     this.saveSession();
   }
 
   back() {
-    const removedCard = this.history.pop()?.card;
-    let card1 = this.history.at(-1)?.card ?? null;
+    const removedCard = this._history.pop()?.card;
+    this.history.update((history) => history.slice(0, -1));
+    let card1 = this._history.at(-1)?.card ?? null;
     this.card.set(card1);
-    this.totalPrice.update((price) => price - parseFloat(removedCard.prices.eur));
+    this.totalPrice.update((price) => price - parseFloat(removedCard?.prices?.eur ?? '0.0'));
     this.decrement(`${removedCard.rarity}` as RarityEnum);
     this.saveSession();
   }
@@ -201,7 +231,7 @@ export class LayoutComponent implements OnInit {
 
   saveSession() {
     this.storage.saveSession(this.cardCounts());
-    this.storage.set('price', this.totalPrice.toString());
+    this.storage.set('price', this.totalPrice().toString());
   }
 
   resetSession() {
@@ -209,6 +239,8 @@ export class LayoutComponent implements OnInit {
     this.cardCounts.set(this.emptySession);
     this.card.set(null);
     this.totalPrice.set(0.0);
+    this.history.set([]);
+    this.boosterId.set(1);
     this.loadingString.set("Waiting for request...");
   }
 
@@ -226,5 +258,9 @@ export class LayoutComponent implements OnInit {
       return obj;
     });
     this.saveSession();
+  }
+
+  getCardForBooster(boosterId: number): any[] {
+    return this.history().filter(h => h.boosterId === boosterId).map(h => h.card);
   }
 }

@@ -1,1 +1,10 @@
 @use "tailwindcss";
+@import "https://cdn.jsdelivr.net/npm/mana-font@latest/css/mana.css";
+
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css" layer(utilities);
+
+html, body { height: 100%; }
+body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
