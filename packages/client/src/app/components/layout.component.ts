@@ -69,6 +69,7 @@ import { Card } from '../models/scryfall';
       [history]="history()"
       [boosterId]="boosterId()"
       (onItemClick)="handleItemClicked($event)"
+      (deleteItem)="deleteItem($event)"
       class="max-w-3xl"
     ></app-booster-list>
 
@@ -217,11 +218,7 @@ export class LayoutComponent implements OnInit {
   }
 
   back() {
-    const removedCard = this.history().at(-1)?.card ?? null;
-    this.history.set(this.history().slice(0, -1));
-    this.currentHistoryItem.set(this.history().at(-1) ?? null);
-    this.totalPrice.update((price) => price - parseFloat(removedCard?.prices?.eur ?? '0.0'));
-    this.saveSession();
+    this.deleteItem(this.history().at(-1) ?? null)
   }
 
   nextBooster() {
@@ -247,5 +244,16 @@ export class LayoutComponent implements OnInit {
   handleItemClicked(event: any) {
     console.log(event);
     this.currentHistoryItem.set(event);
+  }
+
+  deleteItem(item: HistoryItem | null) {
+    if (!item) {
+      return;
+    }
+    const removedCard = item.card;
+    this.history.set(this.history().filter((h) => h.date !== item.date));
+    this.currentHistoryItem.set(this.history().at(-1) ?? null);
+    this.totalPrice.update((price) => price - parseFloat(removedCard.prices.eur ?? '0.0'));
+    this.saveSession();
   }
 }

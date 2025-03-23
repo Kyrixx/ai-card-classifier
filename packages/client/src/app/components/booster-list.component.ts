@@ -14,6 +14,7 @@ import { HistoryItem } from '../models/history-item';
           [items]="getCardForBooster(bid)"
           [isBoosterActive]="bid === boosterId()"
           (activatedItem)="onItemClick.emit($event)"
+          (deleteItem)="deleteItem.emit($event)"
         ></booster-accordion-item>
       }
     </cdk-accordion>
@@ -32,6 +33,7 @@ export class BoosterListComponent {
   history = input<HistoryItem[]>([]);
   boosterId = input(1);
   onItemClick = output<HistoryItem>();
+  deleteItem = output<HistoryItem>();
 
   getCardForBooster(boosterId: number): HistoryItem[] {
     return this.history().filter(h => h.boosterId === boosterId);

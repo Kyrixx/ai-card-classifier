@@ -36,25 +36,28 @@ import { HistoryItem } from '../models/history-item';
       @if (accordionItem.expanded) {
         <div class="flex flex-col w-full px-1">
           @for (item of items(); track item.date) {
-            <div
-              class="flex justify-around cursor-pointer"
-              (click)="onItemClick(item)"
-              [class.selected]="isSelected(item)"
-            >
-              <div class="flex justify-start flex-grow">
-                @for (mana of extractManaValues(item.card.mana_cost); track $index) {
-                  <span
-                    class="ms ms-cost ms-shadow"
-                    [ngClass]="'ms-' + mana.toLowerCase()"
-                  ></span>
-                }
-                <span class="mx-1">{{ getCardName(item.card) }}</span>
+            <div class="flex flex-grow w-full justify-around">
+              <div
+                class="flex flex-grow justify-around cursor-pointer"
+                (click)="onItemClick(item)"
+                [class.selected]="isSelected(item)"
+              >
+                <div class="flex justify-start flex-grow">
+                  @for (mana of extractManaValues(item.card.mana_cost); track $index) {
+                    <span
+                      class="ms ms-cost ms-shadow"
+                      [ngClass]="'ms-' + mana.toLowerCase()"
+                    ></span>
+                  }
+                  <span class="mx-1">{{ getCardName(item.card) }}</span>
+                </div>
+                <div class="flex justify-end flex-grow">
+                  <span>{{ item.card.set | uppercase }}</span>
+                  <span class="mx-1">{{ item.card.collector_number }}</span>
+                  <span class="mx-1">{{ getCardPrice(item.card) }}</span>
+                </div>
               </div>
-              <div class="flex justify-end flex-grow">
-                <span>{{ item.card.set | uppercase }}</span>
-                <span class="mx-1">{{ item.card.collector_number }}</span>
-                <span class="mx-1">{{ getCardPrice(item.card) }}</span>
-              </div>
+              <div class="mx-1 cursor-not-allowed" (click)="deleteItem.emit(item)">❌</div>
             </div>
           }
           <div class="flex justify-center" *ngIf="items().length === 0">Vide</div>
@@ -85,6 +88,7 @@ export class BoosterAccordionComponent {
   boosterNumber = input(1);
   isBoosterActive = input(true);
   activatedItem = output<HistoryItem>();
+  deleteItem = output<HistoryItem>();
 
   protected itemActivated = signal<HistoryItem | null>(
     this.items().sort((a: HistoryItem, b: HistoryItem) => b.date - a.date)[0],
