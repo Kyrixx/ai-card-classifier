@@ -1,19 +1,19 @@
-0.0.0.0:8081 {
-    root * dist/client/browser
-    file_server
-    encode gzip
+:8081 {
+	root * dist/client/browser
+	file_server
+	encode gzip
 
-    # Rediriger toutes les requêtes vers index.html pour le routage Angular
-    try_files {path} /index.html
+	# Rediriger toutes les requêtes vers index.html pour le routage Angular
+	try_files {path} /index.html
 
-    # Ajouter des en-têtes de sécurité
-    header {
-        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-        X-Content-Type-Options "nosniff"
-        X-Frame-Options "DENY"
-        X-XSS-Protection "1; mode=block"
-        Referrer-Policy "no-referrer-when-downgrade"
-    }
+	# Ajouter des en-têtes de sécurité
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		X-XSS-Protection "1; mode=block"
+		Referrer-Policy "no-referrer-when-downgrade"
+	}
 
-    tls ../../certs/cert.pem ../../certs/key.pem
+	tls ../../certs/ca/server.crt ../../certs/ca/server.key
 }

@@ -10,7 +10,7 @@ const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    importProvidersFrom(SocketIoModule.forRoot({ url: 'http://localhost:3000' })),
+    importProvidersFrom(SocketIoModule.forRoot({ url: `${window.location.protocol}//${window.location.hostname}:3000` })),
     provideHttpClient(),
   ],
 };
