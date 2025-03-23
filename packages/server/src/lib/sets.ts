@@ -8,7 +8,7 @@ export async function fetchSets() {
     return updatedSets;
   }
 
-  console.log('feching sets from scryfall');
+  console.log('[sets] feching sets from scryfall');
   updatedSets = [...new Set<string>(await getSetsFromScryfall())];
   return updatedSets;
 }

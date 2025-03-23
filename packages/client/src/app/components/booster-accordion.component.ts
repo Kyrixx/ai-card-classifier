@@ -126,6 +126,13 @@ export class BoosterAccordionComponent {
   }
 
   getCardPrice(card: Card): string {
-    return card.prices.eur?.length > 0 ? `${card.prices.eur}€` : 'N/A';
+    if(card.prices.eur?.length > 0) {
+      return `${card.prices.eur}€`;
+    }
+
+    if(card.prices.usd?.length > 0) {
+      return `${card.prices.eur}$`;
+    }
+    return 'N/A';
   }
 }

@@ -1,7 +1,7 @@
 import { io } from './lib/websocket';
 import { getFrameFromVideoBuffer } from './lib/video';
 import { getCardInfoFromAI } from './lib/ai';
-import { getCardFromScryfall, getSetsFromScryfall } from './lib/mtg';
+import { assertCardIsUsable, getCardFromScryfall, getSetsFromScryfall } from './lib/mtg';
 import express from 'express';
 import multer from 'multer';
 
@@ -26,6 +26,12 @@ export function webServer(): express.Router {
     }
     io.emit('waiting_scryfall');
     const card = await getCardFromScryfall(json.set, json.collector_number);
+    if (!assertCardIsUsable(card)) {
+      io.emit('error');
+      console.log(card);
+      res.status(400).send({ error: 'Card as issues', card });
+      return;
+    }
     io.emit('finished', card);
     res.send(card);
   });
