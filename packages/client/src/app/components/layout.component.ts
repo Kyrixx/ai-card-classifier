@@ -1,67 +1,46 @@
-import { Component, HostListener, OnInit, signal, computed } from '@angular/core';
-import { NgIf, UpperCasePipe } from '@angular/common';
+import { Component, computed, HostListener, OnInit, signal } from '@angular/core';
 import { ProcessorService } from '../services/processor.service';
 import { StorageService } from '../services/storage.service';
 import { Socket } from 'ngx-socket-io';
-import { ControlsComponent } from './controls.component';
-import { CdkAccordion } from '@angular/cdk/accordion';
-import { BoosterAccordionComponent } from './booster-accordion.component';
-
-enum Loading {
-  Requested,
-  Clicked,
-  WaitingScryfall,
-  WaitingAI,
-  AIFinished,
-  Finished,
-  Error,
-}
-
-enum RarityEnum {
-  Common = 'common',
-  Uncommon = 'uncommon',
-  Rare = 'rare',
-  Mythic = 'mythic',
-}
+import type { HistoryItem } from '../models/history-item';
+import { RarityEnum } from '../models/rarity.enum';
+import { BoosterListComponent } from './booster-list.component';
+import { Loading } from '../models/loading.enum';
+import { CardDisplayComponent } from './card-display.component';
 
 @Component({
   selector: 'app-layout',
   imports: [
-    NgIf,
-    UpperCasePipe,
-    ControlsComponent,
-    CdkAccordion,
-    BoosterAccordionComponent,
+    BoosterListComponent,
+    CardDisplayComponent,
   ],
   template: `
     <div class="flex flex-col align-center max-w-sm border-2 border-gray-400 rounded-xl p-2">
-      <section class="flex flex-col items-center min-h-auto">
-        <img *ngIf="card() !== null" class="justify-center min-h-75" [src]="card()?.image_uris.large" [width]="width"
-             [height]="width*1.31"
-             alt="Card" />
-        <div *ngIf="card() === null"
-             class="w-75 h-98 rounded-xl bg-blue-100 flex items-center justify-center border-1 border-gray-400">
-          {{ loadingString() }}
-        </div>
-        <div *ngIf="card()" class="flex flex-row justify-evenly min-w-full">
-          <p>Set : {{ card()?.set | uppercase }}</p>
-          <p class="align-center">Prix : {{ card()?.prices?.eur ?? 'N/A' }} €</p>
-        </div>
-      </section>
+      <app-card-display
+        [card]="card()"
+        [loadingState]="webSocketState()"
+      ></app-card-display>
 
-      <div class="flex flex-col max-w-md mx-auto mt-4 bg-gray-200">
-        <app-controls title="Common" (i)="increment(RarityEnum.Common)" (d)="decrement(RarityEnum.Common)">
-          {{ cardCounts()['common'] }}
-        </app-controls>
-        <app-controls title="Uncommon" (i)="increment(RarityEnum.Uncommon)" (d)="decrement(RarityEnum.Uncommon)">
-          {{ cardCounts()['uncommon'] }}
-        </app-controls>
-        <app-controls title="Rare" (i)="increment(RarityEnum.Rare)" (d)="decrement(RarityEnum.Rare)">
-          {{ cardCounts()['rare'] }}
-        </app-controls>
-        <app-controls title="Mythic" (i)="increment(RarityEnum.Mythic)" (d)="decrement(RarityEnum.Mythic)">
-          {{ cardCounts()['mythic'] }}
-        </app-controls>
+      <div class="flex flex-col max-w-sm mx-12 mt-4 bg-gray-700">
+        <div class="flex w-full items-center">
+          <div class="px-4 py-2 text-center flex items-center justify-center w-1/2 whitespace-nowrap">Common :</div>
+          <div class="px-4 py-2 text-center w-1/2">{{ cardCounts()['common'] }}</div>
+        </div>
+
+        <div class="flex w-full items-center">
+          <div class="px-4 py-2 text-center flex items-center justify-center w-1/2 whitespace-nowrap">Uncommon :</div>
+          <div class="px-4 py-2 text-center w-1/2">{{ cardCounts()['uncommon'] }}</div>
+        </div>
+
+        <div class="flex w-full items-center">
+          <div class="px-4 py-2 text-center flex items-center justify-center w-1/2 whitespace-nowrap">Rare :</div>
+          <div class="px-4 py-2 text-center w-1/2">{{ cardCounts()['rare'] }}</div>
+        </div>
+
+        <div class="flex w-full items-center">
+          <div class="px-4 py-2 text-center flex items-center justify-center w-1/2 whitespace-nowrap">Mythic :</div>
+          <div class="px-4 py-2 text-center w-1/2">{{ cardCounts()['mythic'] }}</div>
+        </div>
       </div>
 
       <div class="flex flex-col items-center justify-center mt-4">
@@ -70,26 +49,26 @@ enum RarityEnum {
       </div>
 
       <div class="flex justify-evenly mt-4 flex-wrap">
-        <button class="bg-blue-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1" (click)="onClick()">Ask AI</button>
-        <button class="bg-blue-800 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1" (click)="resetSession()">Reset
+        <button class="bg-blue-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1" (click)="onClick()">Ask
+          AI
+        </button>
+        <button class="bg-blue-800 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1" (click)="resetSession()">
+          Reset
           Session
         </button>
-        <button class="bg-green-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1" (click)="nextBooster()">Next booster</button>
-        <button class="bg-red-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1" (click)="back()">Nop !</button>
+        <button class="bg-green-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1" (click)="nextBooster()">
+          Next booster
+        </button>
+        <button class="bg-red-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1" (click)="back()">Nop !
+        </button>
       </div>
     </div>
-    <div class="flex flex-col flex-1 max-h-full items-center max-w-md">
-      <cdk-accordion class="w-full">
-        @for (bid of uniqueBoosterIds(); track bid) {
-          <booster-accordion-item
-            [boosterNumber]="bid"
-            [cards]="getCardForBooster(bid)"
-            [isActive]="bid === boosterId()"
-          ></booster-accordion-item>
-        }
-      </cdk-accordion>
-    </div>
-    <div class="flex flex-col flex-1 max-h-full items-center">
+    <app-booster-list [history]="history()" [boosterId]="boosterId()" class="max-w-md"></app-booster-list>
+
+    <div
+      class="flex flex-col flex-1 max-h-full items-center"
+      [class.video-container]="webSocketState() === Loading.Requested"
+    >
       <video id="feedback" autoplay class="flex w-5/6" [srcObject]="stream"></video>
     </div>
 
@@ -98,169 +77,161 @@ enum RarityEnum {
     :host {
       @apply flex;
     }
-    `,
+
+    .video-container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+
+    .video-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 255, 0, 0.5); /* Red color with 50% opacity */
+      filter: blur(10px); /* Adjust the blur radius as needed */
+      z-index: 3;
+      pointer-events: none; /* Ensure the blur does not interfere with video controls */
+    }
+
+    #feedback {
+      position: relative;
+      z-index: 2;
+    }
+  `,
 })
 export class LayoutComponent implements OnInit {
-  protected readonly RarityEnum = RarityEnum;
   protected stream: MediaStream | null = null;
   protected readonly width: number = 300;
-  private readonly emptySession: Record<RarityEnum, number> = {
-    [RarityEnum.Common]: 0,
-    [RarityEnum.Uncommon]: 0,
-    [RarityEnum.Rare]: 0,
-    [RarityEnum.Mythic]: 0,
-  };
 
-  _history: any[] = [];
-  history = signal<any[]>([]);
-  uniqueBoosterIds = computed<number[]>(() => {
-    const boosterIdsFromHistory = Array.from(new Set(this.history().map((h) => h.boosterId)));
-    if(this.boosterId() > boosterIdsFromHistory.length) {
-      boosterIdsFromHistory.push(this.boosterId());
-    }
-    return boosterIdsFromHistory
-  });
+  history = signal<HistoryItem[]>([]);
   boosterId = signal<number>(1);
   card = signal<any>(null);
-  loadingString = signal<string>("Waiting for request...");
-
-  cardCounts = signal<Record<RarityEnum, number>>(this.emptySession);
+  cardCounts = computed<Record<RarityEnum, number>>(() => {
+    return this.history().reduce((acc: Record<RarityEnum, number>, h: HistoryItem) => {
+      acc[h.card.rarity]++;
+      return acc;
+    }, {
+      [RarityEnum.Common]: 0,
+      [RarityEnum.Uncommon]: 0,
+      [RarityEnum.Rare]: 0,
+      [RarityEnum.Mythic]: 0,
+    });
+  });
   totalPrice = signal<number>(0.0);
-  readonly WebSocket = {
-    Requested: 'requested',
-    Clicked: 'clicked',
-    WaitingScryfall: 'waiting_scryfall',
-    WaitingAI: 'waiting_ai',
-    AIFinished: 'ai_finished',
-    Finished: 'finished',
-    Error: 'error',
-  };
+  webSocketState = signal<Loading>(Loading.Initial);
 
-  readonly LoadingLabels: Record<Loading, string> = {
-    [Loading.Clicked]: 'Detection requested',
-    [Loading.Requested]: 'Request received',
-    [Loading.WaitingAI]: 'Waiting for AI response',
-    [Loading.AIFinished]: 'Card detected',
-    [Loading.WaitingScryfall]: 'Waiting for Scryfall response',
-    [Loading.Finished]: 'Card Information retrieved',
-    [Loading.Error]: 'No card detected',
+  readonly WebSocketEvent: Record<Loading, string> = {
+    [Loading.Initial]: '_',
+    [Loading.Requested]: 'requested',
+    [Loading.Clicked]: 'clicked',
+    [Loading.WaitingScryfall]: 'waiting_scryfall',
+    [Loading.WaitingAI]: 'waiting_ai',
+    [Loading.AIFinished]: 'ai_finished',
+    [Loading.Finished]: 'finished',
+    [Loading.Error]: 'error',
   };
 
   constructor(
     private readonly processorService: ProcessorService,
     private readonly websocket: Socket,
     private readonly storage: StorageService,
-  ) {
-  }
+  ) {}
 
   async ngOnInit() {
-    this.cardCounts.set(this.storage.getSession() ?? this.emptySession);
-    this.totalPrice.set(!!this.storage.get('price') ? parseFloat(this.storage.get('price')!) : 0.0);
+    this.loadSession();
+    this.listenWebsocketEvents();
     this.stream = await ProcessorService.triggerVideo();
+  }
 
-    this.websocket.on(this.WebSocket.Clicked, () => {
-      this.loadingString.set(this.LoadingLabels[Loading['Clicked']]);
+  loadSession() {
+    this.totalPrice.set(!!this.storage.get('price') ? parseFloat(this.storage.get('price')!) : 0.0);
+    this.history.set(JSON.parse(this.storage.get('history') ?? '[]'));
+    this.card.set(this.history().at(-1)?.card ?? null);
+  }
+
+  listenWebsocketEvents() {
+    this.websocket.on(this.WebSocketEvent[Loading.Clicked], () => {
+      this.webSocketState.set(Loading.Clicked);
       this.onClick();
     });
 
-    this.websocket.on(this.WebSocket.Requested, () => {
-      this.loadingString.set(this.LoadingLabels[Loading.Requested]);
-      this.card.update(() => null);
-    })
-
-    this.websocket.on(this.WebSocket.WaitingAI, () => {
-      this.loadingString.set(this.LoadingLabels[Loading.WaitingAI]);
-
+    this.websocket.on(this.WebSocketEvent[Loading.Requested], () => {
+      this.webSocketState.set(Loading.Requested);
+      this.card.set(null);
     });
 
-    this.websocket.on(this.WebSocket.AIFinished, () => {
-      this.loadingString.set(this.LoadingLabels[Loading.AIFinished]);
-
+    this.websocket.on(this.WebSocketEvent[Loading.WaitingAI], () => {
+      this.webSocketState.set(Loading.WaitingAI);
     });
 
-    this.websocket.on(this.WebSocket.WaitingScryfall, () => {
-      this.loadingString.set(this.LoadingLabels[Loading.WaitingScryfall]);
-    })
+    this.websocket.on(this.WebSocketEvent[Loading.AIFinished], () => {
+      this.webSocketState.set(Loading.AIFinished);
+    });
 
-    this.websocket.on(this.WebSocket.Finished, () => {
-      this.loadingString.set(this.LoadingLabels[Loading.Finished]);
-    })
+    this.websocket.on(this.WebSocketEvent[Loading.WaitingScryfall], () => {
+      this.webSocketState.set(Loading.WaitingScryfall);
+    });
 
-    this.websocket.on(this.WebSocket.Error, () => {
-      this.loadingString.set(this.LoadingLabels[Loading.Error]);
-    })
+    this.websocket.on(this.WebSocketEvent[Loading.Finished], () => {
+      this.webSocketState.set(Loading.Finished);
+    });
+
+    this.websocket.on(this.WebSocketEvent[Loading.Error], () => {
+      this.webSocketState.set(Loading.Error);
+    });
   }
 
   @HostListener('window:keydown', ['$event'])
-  async onClick(event?: KeyboardEvent) {
+  handleKeyDown(event: KeyboardEvent) {
     if (!!event && event.key !== 'Enter') {
       return;
     }
-    event?.preventDefault();
+    event.preventDefault();
+    this.onClick();
+  }
+
+  async onClick() {
+    this.card.set(null);
     const card = await this.processorService.triggerRecognition();
     this.card.set(card);
-    console.log(card);
-    this._history.push({
-      card,
-      date: Date.now(),
-      boosterId: this.boosterId(),
-    })
-    this.history.update((history) => [...history, {
+    this.history.set([...this.history(), {
       card,
       date: Date.now(),
       boosterId: this.boosterId(),
     }]);
     this.totalPrice.update((price) => price + parseFloat(card?.prices?.eur ?? '0.0'));
-    this.increment(`${card.rarity}` as RarityEnum);
     this.saveSession();
   }
 
   back() {
-    const removedCard = this._history.pop()?.card;
-    this.history.update((history) => history.slice(0, -1));
-    let card1 = this._history.at(-1)?.card ?? null;
-    this.card.set(card1);
+    const removedCard = this.history().at(-1)?.card ?? null;
+    this.history.set(this.history().slice(0, -1));
+    this.card.set(this.history().at(-1)?.card ?? null);
     this.totalPrice.update((price) => price - parseFloat(removedCard?.prices?.eur ?? '0.0'));
-    this.decrement(`${removedCard.rarity}` as RarityEnum);
     this.saveSession();
   }
 
   nextBooster() {
-    this.boosterId.update((id) => id + 1);
+    this.boosterId.set(this.boosterId() + 1);
   }
 
   saveSession() {
-    this.storage.saveSession(this.cardCounts());
     this.storage.set('price', this.totalPrice().toString());
+    this.storage.saveObject('history', this.history());
   }
 
   resetSession() {
     this.storage.resetSession();
-    this.cardCounts.set(this.emptySession);
     this.card.set(null);
     this.totalPrice.set(0.0);
     this.history.set([]);
     this.boosterId.set(1);
-    this.loadingString.set("Waiting for request...");
+    this.webSocketState.set(Loading.Initial);
   }
 
-  increment(rarity: RarityEnum) {
-    this.cardCounts.update(obj => {
-      obj[rarity]++;
-      return obj;
-    });
-    this.saveSession();
-  }
-
-  decrement(rarity: RarityEnum) {
-    this.cardCounts.update(obj => {
-      obj[rarity]--;
-      return obj;
-    });
-    this.saveSession();
-  }
-
-  getCardForBooster(boosterId: number): any[] {
-    return this.history().filter(h => h.boosterId === boosterId).map(h => h.card);
-  }
+  protected readonly Loading = Loading;
 }

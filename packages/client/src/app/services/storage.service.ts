@@ -16,8 +16,8 @@ export class StorageService {
     this.storage.removeItem(key);
   }
 
-  saveSession(cardCounts: Record<string, number>) {
-    this.set('cardCounts', JSON.stringify(cardCounts));
+  saveObject(key: string, value: Record<string, any>) {
+    this.set(key, JSON.stringify(value));
   }
 
   getSession(): Record<string, number> {
@@ -27,5 +27,6 @@ export class StorageService {
   resetSession() {
     this.remove('cardCounts');
     this.remove('price');
+    this.remove('history');
   }
 }

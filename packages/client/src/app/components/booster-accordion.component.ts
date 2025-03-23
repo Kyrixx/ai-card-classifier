@@ -2,7 +2,8 @@ import { Component, Input } from '@angular/core';
 import { CdkAccordionModule } from '@angular/cdk/accordion';
 import { MatIcon } from '@angular/material/icon';
 import { NgClass, NgIf, UpperCasePipe } from '@angular/common';
-import { Card } from '../models/card';
+import { Card } from '../models/scryfall';
+import { HistoryItem } from '../models/history-item';
 
 @Component({
   selector: 'booster-accordion-item',
@@ -34,25 +35,25 @@ import { Card } from '../models/card';
 
       @if (accordionItem.expanded) {
         <div class="flex flex-col w-full px-1">
-          @for (card of cards; track card.name) {
+          @for (item of items; track item.date) {
             <div class="flex justify-around">
               <div class="flex justify-start flex-grow">
-                @for (mana of extractManaValues(card.mana_cost); track mana) {
+                @for (mana of extractManaValues(item.card.mana_cost); track $index) {
                   <span
                     class="ms ms-cost ms-shadow"
                     [ngClass]="'ms-' + mana.toLowerCase()"
                   ></span>
                 }
-                <span class="mx-1">{{ getCardName(card) }}</span>
+                <span class="mx-1">{{ getCardName(item.card) }}</span>
               </div>
               <div class="flex justify-end flex-grow">
-                <span>{{ card.set | uppercase }}</span>
-                <span class="mx-1">{{ card.collector_number }}</span>
-                <span class="mx-1">{{ card.price }}</span>
+                <span>{{ item.card.set | uppercase }}</span>
+                <span class="mx-1">{{ item.card.collector_number }}</span>
+                <span class="mx-1">{{ getCardPrice(item.card) }}</span>
               </div>
             </div>
           }
-          <div class="flex justify-center" *ngIf="cards.length === 0"> Vide </div>
+          <div class="flex justify-center" *ngIf="items.length === 0">Vide</div>
 
         </div>
 
@@ -66,7 +67,7 @@ import { Card } from '../models/card';
   `,
 })
 export class BoosterAccordionComponent {
-  @Input() cards: Card[] = [];
+  @Input() items: HistoryItem[] = [];
 
   @Input() boosterNumber: number = 0;
   @Input() isActive: boolean = true;
@@ -86,5 +87,9 @@ export class BoosterAccordionComponent {
 
   getCardName(card: Card): string {
     return card.printed_name?.length > 0 ? card.printed_name : card.name;
+  }
+
+  getCardPrice(card: Card): string {
+    return card.prices.eur?.length > 0 ? `${card.prices.eur}€` : 'N/A';
   }
 }

@@ -3,7 +3,6 @@ import ffmpeg from 'ffmpeg';
 
 export async function getFrameFromVideoBuffer(buffer: Buffer): Promise<string> {
   // Save new file
-  console.log(buffer);
   fs.writeFileSync('video.webm', buffer);
   console.log('[video] File saved');
 
