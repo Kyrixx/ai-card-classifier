@@ -1,6 +1,5 @@
-import { Component, input, Input, output, Output, signal } from '@angular/core';
+import { Component, input, output, signal } from '@angular/core';
 import { CdkAccordionModule } from '@angular/cdk/accordion';
-import { MatIcon } from '@angular/material/icon';
 import { NgClass, NgIf, UpperCasePipe } from '@angular/common';
 import { Card } from '../models/scryfall';
 import { HistoryItem } from '../models/history-item';
@@ -9,7 +8,6 @@ import { HistoryItem } from '../models/history-item';
   selector: 'booster-accordion-item',
   imports: [
     CdkAccordionModule,
-    MatIcon,
     NgIf,
     NgClass,
     UpperCasePipe,
@@ -24,11 +22,14 @@ import { HistoryItem } from '../models/history-item';
         class="flex flex-col justify-start w-full px-2"
       >
         <div class="flex w-full">
-          <div class="flex w-full">
-            <mat-icon *ngIf="!accordionItem.expanded" class="">keyboard_arrow_down</mat-icon>
-            <mat-icon *ngIf="accordionItem.expanded" class="">keyboard_arrow_up</mat-icon>
-            <p class="mx-3">Booster n°{{ boosterNumber() }}</p>
-            <span *ngIf="isBoosterActive">✅</span>
+          <div class="flex w-full justify-around">
+            <div class="flex justify-start flex-grow">
+              <span *ngIf="isBoosterActive()">✅</span>
+              <p class="mx-3">Booster n°{{ boosterNumber() }} - {{ items().length }} cartes</p>
+            </div>
+            <div class="flex flex-grow justify-end">
+              {{ getBoosterPrice(items()) }}&nbsp;€
+            </div>
           </div>
         </div>
       </button>
@@ -134,5 +135,17 @@ export class BoosterAccordionComponent {
       return `${card.prices.eur}$`;
     }
     return 'N/A';
+  }
+
+  getBoosterPrice(items: HistoryItem[]): string {
+    return items.reduce((acc, item) => {
+      let cardPrice = 0.0;
+      if(item.card.prices.eur?.length > 0) {
+        cardPrice = parseFloat(item.card.prices.eur);
+      } else if(item.card.prices.usd?.length > 0) {
+        cardPrice = parseFloat(item.card.prices.usd);
+      }
+      return acc + cardPrice;
+    }, 0).toFixed(2);
   }
 }

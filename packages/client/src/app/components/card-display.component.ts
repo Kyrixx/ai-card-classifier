@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { NgIf, UpperCasePipe } from '@angular/common';
+import { NgClass, NgIf, UpperCasePipe } from '@angular/common';
 import { Loading } from '../models/loading.enum';
 import { Card } from '../models/scryfall';
 
@@ -8,9 +8,14 @@ import { Card } from '../models/scryfall';
   selector: 'app-card-display',
   template: `
     <section class="flex flex-col items-center min-h-auto">
-      <img *ngIf="card !== null" class="justify-center min-h-75" [src]="getCardImage(card)" [width]="width"
-           [height]="width*1.31"
-           alt="Card" />
+      <div *ngIf="!!card" class="relative">
+        <img class="justify-center min-h-75" [src]="getCardImage(card)" [width]="width"
+             [height]="width*1.31"
+             alt="Card" />
+        <div *ngIf="loadingState !== Loading.Finished" class="loading-text absolute z-1 text-white italic bg-blue-700 w-full text-center">
+          {{ LoadingLabels[loadingState] }}
+        </div>
+      </div>
       <div *ngIf="card === null"
            class="w-75 h-98 rounded-xl bg-blue-700 flex items-center justify-center border-1 border-gray-400">
         {{ LoadingLabels[loadingState] }}
@@ -28,6 +33,13 @@ import { Card } from '../models/scryfall';
   styles: `
     :host {
       @apply flex flex-col items-center min-h-auto;
+    }
+
+    .loading-text {
+      top: 100%;
+      left: 50%;
+      transform: translate(-50%, -100%);
+      background-color: rgba(21, 70, 230, 0.5);
     }
   `,
 })
@@ -54,4 +66,6 @@ export class CardDisplayComponent {
   getCardPrice(card: Card): string {
     return card.prices.eur?.length > 0 ? `${card.prices.eur}€` : 'N/A';
   }
+
+  protected readonly Loading = Loading;
 }

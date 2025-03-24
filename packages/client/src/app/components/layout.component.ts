@@ -170,7 +170,7 @@ export class LayoutComponent implements OnInit {
 
     this.websocket.on(this.WebSocketEvent[Loading.Requested], () => {
       this.webSocketState.set(Loading.Requested);
-      this.currentHistoryItem.set(null);
+      // this.currentHistoryItem.set(null);
     });
 
     this.websocket.on(this.WebSocketEvent[Loading.WaitingAI], () => {
@@ -204,7 +204,7 @@ export class LayoutComponent implements OnInit {
   }
 
   async onClick() {
-    this.currentHistoryItem.set(null);
+    // this.currentHistoryItem.set(null);
     const historyItem = {
       card: await this.processorService.triggerRecognition(),
       date: Date.now(),
@@ -231,6 +231,9 @@ export class LayoutComponent implements OnInit {
   }
 
   resetSession() {
+    if(!window.confirm('Are you sure you want to reset the session?')) {
+      return;
+    }
     this.storage.resetSession();
     this.currentHistoryItem.set(null);
     this.totalPrice.set(0.0);
