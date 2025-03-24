@@ -61,7 +61,14 @@ import { MatIcon } from '@angular/material/icon';
                 <div class="flex justify-end flex-grow">
                   <span>{{ item.card.set | uppercase }}</span>
                   <span class="mx-1">{{ item.card.collector_number }}</span>
-                  <span class="mx-1">{{ getCardPrice(item.card) }}</span>
+                  <span
+                    class="mx-1"
+                    [class.text-red-500]="parseInt(getCardPrice(item.card)) > 10"
+                    [class.font-bold]="parseInt(getCardPrice(item.card)) > 10"
+                    [class.underline]="parseInt(getCardPrice(item.card)) > 10"
+                    [class.text-blue-500]="parseInt(getCardPrice(item.card)) > 5"
+                    [class.text-green-500]="parseInt(getCardPrice(item.card)) > 1"
+                  >{{ getCardPrice(item.card) }}</span>
                 </div>
               </div>
               <div class="mx-1 cursor-not-allowed" (click)="deleteItem.emit(item)">❌</div>
@@ -92,6 +99,7 @@ import { MatIcon } from '@angular/material/icon';
   `,
 })
 export class BoosterAccordionComponent {
+  readonly parseInt = parseInt;
   oldItemsCount = 0;
   items = input<HistoryItem[], HistoryItem[]>([], {
     transform: (value: HistoryItem[]): HistoryItem[] => {
