@@ -8,6 +8,7 @@ import { BoosterListComponent } from './booster-list.component';
 import { Loading } from '../models/loading.enum';
 import { CardDisplayComponent } from './card-display.component';
 import { Card } from '../models/scryfall';
+import { TtsService } from '../services/tts.service';
 
 @Component({
   selector: 'app-layout',
@@ -59,7 +60,7 @@ import { Card } from '../models/scryfall';
         <button class="bg-green-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1" (click)="nextBooster()">
           Next booster
         </button>
-        <button class="bg-red-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1" (click)="back()">Nop !
+        <button class="bg-orange-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1" (click)="readCard()">Read Card
         </button>
       </div>
     </div>
@@ -148,6 +149,7 @@ export class LayoutComponent implements OnInit {
     private readonly processorService: ProcessorService,
     private readonly websocket: Socket,
     private readonly storage: StorageService,
+    private readonly tts: TtsService,
   ) {
   }
 
@@ -269,6 +271,21 @@ export class LayoutComponent implements OnInit {
     this.currentHistoryItem.set(this.history().at(-1) ?? null);
     this.totalPrice.update((price) => price - parseFloat(removedCard.prices.eur ?? '0.0'));
     this.saveSession();
+  }
+
+  readCard() {
+    const textToRead = this.card()?.printed_text ?? '';
+    this.tts.speak(
+      textToRead
+        .replace(/\{T\}/g, 'Engagez cette carte')
+        .replace(/\{Q\}/g, 'Dégagez cette carte')
+        .replace(/\{W\}/g, 'Mana blanc')
+        .replace(/\{U\}/g, 'Mana bleu')
+        .replace(/\{B\}/g, 'Mana noir')
+        .replace(/\{R\}/g, 'Mana rouge')
+        .replace(/\{G\}/g, 'Mana vert')
+
+  )
   }
 
   isCardDoublon(card: Card, history: HistoryItem[]): boolean {
