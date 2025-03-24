@@ -9,6 +9,7 @@ import { Loading } from '../models/loading.enum';
 import { CardDisplayComponent } from './card-display.component';
 import { Card } from '../models/scryfall';
 import { TtsService } from '../services/tts.service';
+import { AudioService } from '../services/audio.service';
 
 @Component({
   selector: 'app-layout',
@@ -60,7 +61,8 @@ import { TtsService } from '../services/tts.service';
         <button class="bg-green-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1" (click)="nextBooster()">
           Next booster
         </button>
-        <button class="bg-orange-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1" (click)="readCard()">Read Card
+        <button class="bg-orange-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1" (click)="readCard()">Read
+          Card
         </button>
       </div>
     </div>
@@ -229,6 +231,9 @@ export class LayoutComponent implements OnInit {
     this.history.set([...this.history(), historyItem]);
     this.currentHistoryItem.set(historyItem);
     this.totalPrice.update((price) => price + parseFloat(this.card()?.prices?.eur ?? '0.0'));
+    if(parseInt(this.card()?.prices?.eur ?? '0.0') >= 10) {
+      await AudioService.sparkles();
+    }
     this.saveSession();
   }
 
@@ -258,7 +263,6 @@ export class LayoutComponent implements OnInit {
   }
 
   handleItemClicked(event: any) {
-    console.log(event);
     this.currentHistoryItem.set(event);
   }
 
@@ -283,9 +287,8 @@ export class LayoutComponent implements OnInit {
         .replace(/\{U\}/g, 'Mana bleu')
         .replace(/\{B\}/g, 'Mana noir')
         .replace(/\{R\}/g, 'Mana rouge')
-        .replace(/\{G\}/g, 'Mana vert')
-
-  )
+        .replace(/\{G\}/g, 'Mana vert'),
+    );
   }
 
   isCardDoublon(card: Card, history: HistoryItem[]): boolean {
