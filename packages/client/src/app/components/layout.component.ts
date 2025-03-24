@@ -148,7 +148,8 @@ export class LayoutComponent implements OnInit {
     private readonly processorService: ProcessorService,
     private readonly websocket: Socket,
     private readonly storage: StorageService,
-  ) {}
+  ) {
+  }
 
   async ngOnInit() {
     this.loadSession();
@@ -158,8 +159,21 @@ export class LayoutComponent implements OnInit {
 
   loadSession() {
     this.totalPrice.set(!!this.storage.get('price') ? parseFloat(this.storage.get('price')!) : 0.0);
-    this.history.set(JSON.parse(this.storage.get('history') ?? '[]'));
+
+    this.history.set(JSON.parse(this.storage.get('history') ?? '[]').reduce((acc: HistoryItem[], h: HistoryItem) => {
+      return [
+        ...acc,
+        {
+          card: h.card,
+          date: h.date,
+          boosterId: h.boosterId,
+          isDoublon: this.isCardDoublon(h.card, acc),
+        },
+      ];
+    }, []));
+
     this.currentHistoryItem.set(this.history().at(-1) ?? null);
+    this.boosterId.set(this.history().length > 0 ? this.history().at(-1)!.boosterId : 1);
   }
 
   listenWebsocketEvents() {
@@ -170,7 +184,6 @@ export class LayoutComponent implements OnInit {
 
     this.websocket.on(this.WebSocketEvent[Loading.Requested], () => {
       this.webSocketState.set(Loading.Requested);
-      // this.currentHistoryItem.set(null);
     });
 
     this.websocket.on(this.WebSocketEvent[Loading.WaitingAI], () => {
@@ -204,21 +217,21 @@ export class LayoutComponent implements OnInit {
   }
 
   async onClick() {
-    // this.currentHistoryItem.set(null);
-    const historyItem = {
-      card: await this.processorService.triggerRecognition(),
+    let card = await this.processorService.triggerRecognition();
+    const historyItem: HistoryItem = {
+      card,
       date: Date.now(),
       boosterId: this.boosterId(),
+      isDoublon: this.isCardDoublon(card, this.history()),
     };
     this.history.set([...this.history(), historyItem]);
     this.currentHistoryItem.set(historyItem);
-
     this.totalPrice.update((price) => price + parseFloat(this.card()?.prices?.eur ?? '0.0'));
     this.saveSession();
   }
 
   back() {
-    this.deleteItem(this.history().at(-1) ?? null)
+    this.deleteItem(this.history().at(-1) ?? null);
   }
 
   nextBooster() {
@@ -231,7 +244,7 @@ export class LayoutComponent implements OnInit {
   }
 
   resetSession() {
-    if(!window.confirm('Are you sure you want to reset the session?')) {
+    if (!window.confirm('Are you sure you want to reset the session?')) {
       return;
     }
     this.storage.resetSession();
@@ -256,5 +269,9 @@ export class LayoutComponent implements OnInit {
     this.currentHistoryItem.set(this.history().at(-1) ?? null);
     this.totalPrice.update((price) => price - parseFloat(removedCard.prices.eur ?? '0.0'));
     this.saveSession();
+  }
+
+  isCardDoublon(card: Card, history: HistoryItem[]): boolean {
+    return history.some((h) => h.card.printed_name === card.printed_name);
   }
 }

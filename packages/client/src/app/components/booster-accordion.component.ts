@@ -3,6 +3,7 @@ import { CdkAccordionModule } from '@angular/cdk/accordion';
 import { NgClass, NgIf, UpperCasePipe } from '@angular/common';
 import { Card } from '../models/scryfall';
 import { HistoryItem } from '../models/history-item';
+import { MatIcon } from '@angular/material/icon';
 
 @Component({
   selector: 'booster-accordion-item',
@@ -11,12 +12,13 @@ import { HistoryItem } from '../models/history-item';
     NgIf,
     NgClass,
     UpperCasePipe,
+    MatIcon,
   ],
   standalone: true,
   template: `
     <cdk-accordion-item #accordionItem="cdkAccordionItem"
                         class="flex flex-col min-w-full border border-gray-700 rounded-md"
-                        expanded="true">
+                        expanded="false">
       <button
         (click)="accordionItem.toggle()"
         class="flex flex-col justify-start w-full px-2"
@@ -50,7 +52,11 @@ import { HistoryItem } from '../models/history-item';
                       [ngClass]="'ms-' + mana.toLowerCase()"
                     ></span>
                   }
-                  <span class="mx-1">{{ getCardName(item.card) }}</span>
+                  <span
+                    class="mx-1"
+                    [class.italic]="item.isDoublon"
+                  >{{ getCardName(item.card) }}</span>
+                  <mat-icon *ngIf="item.isDoublon" class="small-icon">content_copy</mat-icon>
                 </div>
                 <div class="flex justify-end flex-grow">
                   <span>{{ item.card.set | uppercase }}</span>
@@ -71,6 +77,17 @@ import { HistoryItem } from '../models/history-item';
   styles: `
     .selected {
       background-color: red;
+    }
+
+    .small-icon.material-icons {
+      font-size: 12px !important; /* Adjust the size as needed */
+    }
+
+    .small-icon {
+      .mat-icon {
+        width: 12px;
+        height: 12px;
+      }
     }
   `,
 })

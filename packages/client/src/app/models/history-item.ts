@@ -4,4 +4,5 @@ export interface HistoryItem {
   card: Card;
   boosterId: number;
   date: number;
+  isDoublon?: boolean;
 }
