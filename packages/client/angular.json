@@ -70,8 +70,8 @@
             "development": {
               "buildTarget": "client:build:development",
               "ssl": true,
-              "sslKey": "../../certs/ca/server.key",
-              "sslCert": "../../certs/ca/server.crt"
+              "sslKey": "../../certs/server.key",
+              "sslCert": "../../certs/server.crt"
             }
           },
           "defaultConfiguration": "development"
