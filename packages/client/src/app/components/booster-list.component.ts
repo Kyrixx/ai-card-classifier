@@ -7,7 +7,7 @@ import { HistoryItem } from '../models/history-item';
   standalone: true,
   selector: 'app-booster-list',
   template: `
-    <cdk-accordion class="w-full">
+    <cdk-accordion class="w-full max-h-[795px] overflow-y-auto">
       @for (bid of uniqueBoosterIds(); track bid) {
         <booster-accordion-item
           [boosterNumber]="bid"
@@ -19,15 +19,12 @@ import { HistoryItem } from '../models/history-item';
       }
     </cdk-accordion>
   `,
-  styles: `
-  :host {
-    @apply flex flex-col flex-1 max-h-full items-center;
-  }
-  `,
+  host: {'class': 'flex flex-col flex-1 max-h-full items-center'},
   imports: [
     BoosterAccordionComponent,
     CdkAccordion,
   ],
+  styles: ``,
 })
 export class BoosterListComponent {
   history = input<HistoryItem[]>([]);

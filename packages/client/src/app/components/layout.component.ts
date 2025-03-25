@@ -237,10 +237,6 @@ export class LayoutComponent implements OnInit {
     this.saveSession();
   }
 
-  back() {
-    this.deleteItem(this.history().at(-1) ?? null);
-  }
-
   nextBooster() {
     this.boosterId.set(this.boosterId() + 1);
   }
