@@ -63,11 +63,11 @@ import { MatIcon } from '@angular/material/icon';
                   <span class="mx-1">{{ item.card.collector_number }}</span>
                   <span
                     class="mx-1"
-                    [class.text-red-500]="parseInt(getCardPrice(item.card)) > 10"
-                    [class.font-bold]="parseInt(getCardPrice(item.card)) > 10"
-                    [class.underline]="parseInt(getCardPrice(item.card)) > 10"
-                    [class.text-blue-500]="parseInt(getCardPrice(item.card)) > 5"
-                    [class.text-green-500]="parseInt(getCardPrice(item.card)) > 1"
+                    [class.text-red-500]="parseInt(getCardPrice(item.card)) >= 10"
+                    [class.font-bold]="parseInt(getCardPrice(item.card)) >= 10"
+                    [class.underline]="parseInt(getCardPrice(item.card)) >= 10"
+                    [class.text-blue-500]="parseInt(getCardPrice(item.card)) >= 5"
+                    [class.text-green-500]="parseInt(getCardPrice(item.card)) >= 1"
                   >{{ getCardPrice(item.card) }}</span>
                 </div>
               </div>
@@ -120,9 +120,7 @@ export class BoosterAccordionComponent {
     this.items().sort((a: HistoryItem, b: HistoryItem) => b.date - a.date)[0],
   );
 
-  constructor() {
-
-  }
+  constructor() {}
 
   isSelected(item: HistoryItem) {
     return this.itemActivated()?.date === item.date;
