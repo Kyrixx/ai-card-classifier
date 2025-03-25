@@ -5,7 +5,7 @@ import { Injectable } from '@angular/core';
 })
 export class AudioService {
   static async sparkles() {
-    const audio = new Audio('sparkles.mp3');
+    const audio = new Audio('audio/sparkles.mp3');
     await audio.play();
   }
 }
