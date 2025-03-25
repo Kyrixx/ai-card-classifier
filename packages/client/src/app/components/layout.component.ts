@@ -182,12 +182,17 @@ export class LayoutComponent implements OnInit {
 
   listenWebsocketEvents() {
     this.websocket.on(this.WebSocketEvent[Loading.Clicked], () => {
+      if(this.webSocketState() !== Loading.Finished) {
+        return;
+      }
+
       this.webSocketState.set(Loading.Clicked);
       this.onClick();
     });
 
     this.websocket.on(this.WebSocketEvent[Loading.Requested], () => {
       this.webSocketState.set(Loading.Requested);
+      AudioService.beep();
     });
 
     this.websocket.on(this.WebSocketEvent[Loading.WaitingAI], () => {
