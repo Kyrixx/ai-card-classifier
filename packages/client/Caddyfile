@@ -15,5 +15,5 @@
 		Referrer-Policy "no-referrer-when-downgrade"
 	}
 
-	tls ../../certs/ca/server.crt ../../certs/ca/server.key
+	tls ../../certs/server.crt ../../certs/server.key
 }
