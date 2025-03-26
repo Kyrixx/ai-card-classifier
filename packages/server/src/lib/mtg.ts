@@ -41,6 +41,18 @@ export async function getSetsFromScryfall() {
     .catch((error) => console.log(error));
 }
 
+export function getSetInfoFromScryfall(set: string) {
+  return axios.get(`https://api.scryfall.com/sets/${set}`)
+    .then((response) => response.data)
+    .catch((error) => console.log(error));
+}
+
+export function getCardCountForSet(set: string) {
+  return axios.get(`https://api.scryfall.com/cards/search?order=set&q=e%3A${set}&unique=cards`)
+    .then((response) => response.data.total_cards)
+    .catch((error) => console.log(error));
+}
+
 export function assertCardIsUsable(card: any): boolean {
   return !!card && !!card.image_uris && !!card.rarity && !!card.set && !!card.collector_number && !!card.name;
 }
