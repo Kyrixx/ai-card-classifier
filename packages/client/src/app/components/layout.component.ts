@@ -298,7 +298,10 @@ export class LayoutComponent implements OnInit {
         .replace(/\{U\}/g, 'Mana bleu')
         .replace(/\{B\}/g, 'Mana noir')
         .replace(/\{R\}/g, 'Mana rouge')
-        .replace(/\{G\}/g, 'Mana vert'),
+        .replace(/\{G\}/g, 'Mana vert')
+        .replace(/\{C\}/g, 'Mana incolore')
+        .replace(/\(*.\)/g, '')
+        .replace(/\//g, '')
     );
   }
 
