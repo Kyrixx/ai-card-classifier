@@ -8,6 +8,8 @@ packages/server/assets/*.jpg
 .turbo
 .idea/dataSources.xml
 certs/**
+**/*.sqlite-shm
+**/*.sqlite-wal
 
 
 # User-specific stuff
