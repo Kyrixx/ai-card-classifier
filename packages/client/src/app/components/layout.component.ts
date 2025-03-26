@@ -120,6 +120,16 @@ export class LayoutComponent implements OnInit {
 
   history = signal<HistoryItem[]>([]);
   currentHistoryItem = signal<HistoryItem | null>(null);
+  collectionCompletion = computed(() => {
+    const history = this.history()
+    return {
+      total: [...new Set(history.map(h => h.card.oracle_id))].length,
+      [RarityEnum.Common]: [...new Set(history.filter(h => h.card.rarity === RarityEnum.Common).map(h => h.card.oracle_id))].length,
+      [RarityEnum.Uncommon]: [...new Set(history.filter(h => h.card.rarity === RarityEnum.Uncommon).map(h => h.card.oracle_id))].length,
+      [RarityEnum.Rare]: [...new Set(history.filter(h => h.card.rarity === RarityEnum.Rare).map(h => h.card.oracle_id))].length,
+      [RarityEnum.Mythic]: [...new Set(history.filter(h => h.card.rarity === RarityEnum.Mythic).map(h => h.card.oracle_id))].length,
+    }
+  });
   boosterId = signal<number>(1);
   card = computed<Card | null>(() => this.currentHistoryItem()?.card ?? null);
   cardCounts = computed<Record<RarityEnum, number>>(() => {
