@@ -3,7 +3,7 @@ import multer from 'multer';
 import { io } from '../lib/websocket';
 import { getFrameFromVideoBuffer } from '../lib/video';
 import { getCardInfoFromAI } from '../lib/ai';
-import { assertCardIsUsable, getCardFromScryfall, getSetsFromScryfall } from '../lib/mtg';
+import { assertCardIsUsable, getCardFromScryfall } from '../lib/mtg';
 
 export function root(): express.Router {
   const app = express.Router();
@@ -34,11 +34,6 @@ export function root(): express.Router {
     }
     io.emit('finished', card);
     res.send(card);
-  });
-
-  app.get('/scryfall-sets', async (req: Request, res: Response) => {
-    const sets = [...new Set(await getSetsFromScryfall())];
-    res.send(sets);
   });
 
   return app;
