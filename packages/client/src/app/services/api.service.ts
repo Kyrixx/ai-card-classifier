@@ -16,4 +16,8 @@ export class ApiService {
   saveCard(params: { set: string, collectorNumber: string, boosterId: number, sessionId: string, createdAt: number }) {
     return this.http.post(`${this.baseUrl}/save/card`, params);
   }
+
+  deleteCard(params: { set: string, collectorNumber: string, boosterId: number, sessionId: string, createdAt: number }) {
+    return this.http.delete(`${this.baseUrl}/save/card`, {body: params});
+  }
 }

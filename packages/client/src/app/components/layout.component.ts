@@ -10,6 +10,8 @@ import { CardDisplayComponent } from './card-display.component';
 import { Card } from '../models/scryfall';
 import { TtsService } from '../services/tts.service';
 import { AudioService } from '../services/audio.service';
+import { lastValueFrom } from 'rxjs';
+import { ApiService } from '../services/api.service';
 
 @Component({
   selector: 'app-layout',
@@ -51,7 +53,7 @@ import { AudioService } from '../services/audio.service';
       </div>
 
       <div class="flex justify-evenly mt-4 flex-wrap">
-        <button class="bg-blue-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1" (click)="onClick()">Ask
+        <button class="bg-blue-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1" (click)="detectCard()">Ask
           AI
         </button>
         <button class="bg-blue-800 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1" (click)="resetSession()">
@@ -163,6 +165,7 @@ export class LayoutComponent implements OnInit {
     private readonly websocket: Socket,
     private readonly storage: StorageService,
     private readonly tts: TtsService,
+    private readonly apiWebservice: ApiService,
   ) {
   }
 
@@ -199,7 +202,7 @@ export class LayoutComponent implements OnInit {
       }
 
       this.webSocketState.set(Loading.Clicked);
-      this.onClick();
+      this.detectCard();
     });
 
     this.websocket.on(this.WebSocketEvent[Loading.Requested], () => {
@@ -234,10 +237,10 @@ export class LayoutComponent implements OnInit {
       return;
     }
     event.preventDefault();
-    await this.onClick();
+    await this.detectCard();
   }
 
-  async onClick() {
+  async detectCard() {
     let card = await this.processorService.triggerRecognition();
     const historyItem: HistoryItem = {
       card,
@@ -251,6 +254,13 @@ export class LayoutComponent implements OnInit {
     if(parseInt(this.card()?.prices?.eur ?? '0.0') >= 10) {
       await AudioService.sparkles();
     }
+    await lastValueFrom(this.apiWebservice.saveCard({
+      set: card.set,
+      collectorNumber: card.collector_number,
+      boosterId: this.boosterId(),
+      sessionId: this.sessionId,
+      createdAt: historyItem.date,
+    }));
     this.saveSession();
   }
 
@@ -281,7 +291,7 @@ export class LayoutComponent implements OnInit {
     this.currentHistoryItem.set(event);
   }
 
-  deleteItem(item: HistoryItem | null) {
+  async deleteItem(item: HistoryItem | null) {
     if (!item) {
       return;
     }
@@ -289,6 +299,13 @@ export class LayoutComponent implements OnInit {
     this.history.set(this.history().filter((h) => h.date !== item.date));
     this.currentHistoryItem.set(this.history().at(-1) ?? null);
     this.totalPrice.update((price) => price - parseFloat(removedCard.prices.eur ?? '0.0'));
+    await lastValueFrom(this.apiWebservice.deleteCard({
+      set: removedCard.set,
+      collectorNumber: removedCard.collector_number,
+      boosterId: item.boosterId,
+      sessionId: this.sessionId,
+      createdAt: item.date,
+    }));
     this.saveSession();
   }
 

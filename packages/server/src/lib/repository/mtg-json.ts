@@ -21,7 +21,7 @@ const getCardQuery = mtgJsonDb.prepare(`
 `);
 export function getCards(params: { set: string, collectorNumber: string }[]): string[] {
   return params.map((param) => {
-    return (getCardQuery.get(param) as string).toString();
+    return (getCardQuery.get(param) as any).uuid as string;
   })
 }
 

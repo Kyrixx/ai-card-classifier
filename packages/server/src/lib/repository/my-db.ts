@@ -23,8 +23,15 @@ export function setupUp() {
 }
 
 const saveCardQuery = myDb.prepare(`
-  INSERT INTO cards (uuid, createdAt, sessionId, boosterId) VALUES (:uuid, datetime(), :sessionId, :boosterId)
+  INSERT INTO cards (uuid, createdAt, sessionId, boosterId) VALUES (:uuid, datetime(:createdAt/ 1000, 'unixepoch'), :sessionId, :boosterId)
 `);
-export function saveCard(params: { uuid: string, sessionId: string, boosterId: number }) {
+export function saveCard(params: { uuid: string, sessionId: string, boosterId: number, createdAt: number }) {
   saveCardQuery.run(params);
+}
+
+const deleteCardQuery = myDb.prepare(`
+  DELETE FROM cards WHERE uuid = :uuid AND sessionId = :sessionId AND boosterId = :boosterId AND createdAt = datetime(:createdAt/ 1000, 'unixepoch')
+`);
+export function deleteCard(params: { uuid: string, sessionId: string, boosterId: number, createdAt: number }) {
+  deleteCardQuery.run(params);
 }
