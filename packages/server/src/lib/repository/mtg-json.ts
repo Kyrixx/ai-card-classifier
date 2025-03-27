@@ -25,3 +25,12 @@ export function getCards(params: { set: string, collectorNumber: string }[]): st
   })
 }
 
+const distinctSetCodesQuery = mtgJsonDb.prepare(`
+    SELECT DISTINCT code
+    FROM sets
+    WHERE parentCode is null
+      AND totalSetSize > 0
+`);
+export function getDistinctSetCodes(): string[] {
+  return distinctSetCodesQuery.all() as string[];
+}

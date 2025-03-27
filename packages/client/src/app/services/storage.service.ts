@@ -28,5 +28,6 @@ export class StorageService {
     this.remove('cardCounts');
     this.remove('price');
     this.remove('history');
+    this.remove('sessionId');
   }
 }

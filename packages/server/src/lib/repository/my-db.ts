@@ -23,7 +23,7 @@ export function setupUp() {
 }
 
 const saveCardQuery = myDb.prepare(`
-  INSERT INTO cards (uuid, createdAt, sessionId, boosterId) VALUES (:uuid, NOW(), :sessionId, :boosterId)
+  INSERT INTO cards (uuid, createdAt, sessionId, boosterId) VALUES (:uuid, datetime(), :sessionId, :boosterId)
 `);
 export function saveCard(params: { uuid: string, sessionId: string, boosterId: number }) {
   saveCardQuery.run(params);

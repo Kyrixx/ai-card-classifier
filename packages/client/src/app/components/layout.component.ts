@@ -117,6 +117,7 @@ export class LayoutComponent implements OnInit {
   protected readonly Loading = Loading;
   protected stream: MediaStream | null = null;
   protected readonly width: number = 300;
+  protected sessionId: string = '';
 
   history = signal<HistoryItem[]>([]);
   currentHistoryItem = signal<HistoryItem | null>(null);
@@ -188,6 +189,7 @@ export class LayoutComponent implements OnInit {
 
     this.currentHistoryItem.set(this.history().at(-1) ?? null);
     this.boosterId.set(this.history().length > 0 ? this.history().at(-1)!.boosterId : 1);
+    this.sessionId = this.storage.get('sessionId') ?? this.generateSessionId();
   }
 
   listenWebsocketEvents() {
@@ -259,6 +261,7 @@ export class LayoutComponent implements OnInit {
   saveSession() {
     this.storage.set('price', this.totalPrice().toString());
     this.storage.saveObject('history', this.history());
+    this.storage.set('sessionId', this.sessionId);
   }
 
   resetSession() {
@@ -271,6 +274,7 @@ export class LayoutComponent implements OnInit {
     this.history.set([]);
     this.boosterId.set(1);
     this.webSocketState.set(Loading.Initial);
+    this.sessionId = this.generateSessionId();
   }
 
   handleItemClicked(event: any) {
@@ -307,5 +311,9 @@ export class LayoutComponent implements OnInit {
 
   isCardDoublon(card: Card, history: HistoryItem[]): boolean {
     return history.some((h) => h.card.printed_name === card.printed_name);
+  }
+
+  generateSessionId() {
+    return Math.random().toString(36).substring(2, 15);
   }
 }

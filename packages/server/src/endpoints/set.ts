@@ -5,8 +5,12 @@ import { getSetsFromScryfall } from '../lib/mtg';
 export function set(): express.Router {
   const app = express.Router();
 
-  app.get('/:set', async (req: Request, res: Response) => {
-    res.send(getCardCountForSet(req.params.set));
+  app.get('/:set/card-count', async (req: Request, res: Response) => {
+    let cardCountForSet = getCardCountForSet(req.params.set.toUpperCase());
+    res.send([
+      ...cardCountForSet,
+      { rarity: 'total', count: cardCountForSet.reduce((acc: number, curr: any) => acc + curr.count, 0) }
+    ]);
   })
 
   app.get('/scryfall-sets', async (req: Request, res: Response) => {
