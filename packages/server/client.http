@@ -1,0 +1,7 @@
+@base_url = https://localhost:3100
+
+GET {{base_url}}/set/DFT
+Accept: application/json
+
+###
+
