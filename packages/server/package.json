@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "node -r dotenv/config dist/main.js",
     "start:server": "@start",
-    "start": "ts-node -r dotenv/config src/main.ts",
+    "start": "ts-node -r dotenv/config src/main.ts --watch",
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
