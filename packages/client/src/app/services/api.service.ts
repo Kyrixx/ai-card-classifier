@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { SetCardCount } from '../models/api/set-card-count';
+import { HistoryItem } from '../models/history-item';
 
 @Injectable({
   providedIn: 'root'
@@ -15,6 +16,19 @@ export class ApiService {
 
   saveCard(params: { set: string, collectorNumber: string, boosterId: number, sessionId: string, createdAt: number }) {
     return this.http.post(`${this.baseUrl}/save/card`, params);
+  }
+
+  saveCards(params: {history: HistoryItem[], sessionId: string}) {
+    const cards = params.history.map((item) => {
+      return {
+        set: item.card.set,
+        collectorNumber: item.card.collector_number,
+        boosterId: item.boosterId,
+        createdAt: item.date,
+        sessionId: params.sessionId
+      };
+    });
+    return this.http.post(`${this.baseUrl}/save/cards`, cards);
   }
 
   deleteCard(params: { set: string, collectorNumber: string, boosterId: number, sessionId: string, createdAt: number }) {

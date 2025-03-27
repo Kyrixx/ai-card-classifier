@@ -272,6 +272,10 @@ export class LayoutComponent implements OnInit {
     this.storage.set('price', this.totalPrice().toString());
     this.storage.saveObject('history', this.history());
     this.storage.set('sessionId', this.sessionId);
+    lastValueFrom(this.apiWebservice.saveCards({
+      history: this.history(),
+      sessionId: this.sessionId,
+    }));
   }
 
   resetSession() {

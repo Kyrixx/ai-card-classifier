@@ -6,7 +6,7 @@ import bodyParser from 'body-parser';
 export function save(): express.Router {
   const app = express.Router();
 
-  app.post('/card', bodyParser(), async (req: Request, res: Response) => {
+  app.post('/card', bodyParser.json(), async (req: Request, res: Response) => {
     const cardUuids = getCards([{ set: req.body.set, collectorNumber: req.body.collectorNumber }]);
     for(const uuid of cardUuids) {
       try {
@@ -19,7 +19,33 @@ export function save(): express.Router {
     res.status(204).send();
   })
 
-  app.delete('/card', bodyParser(), async (req: Request, res: Response) => {
+  app.post('/cards', bodyParser.json(), async (req: Request, res: Response) => {
+    if (!Array.isArray(req.body)) {
+      res.status(400).send({ error: 'Expected array of cards' });
+      return;
+    }
+
+    const addedCards: any = [];
+    for(const card of req.body) {
+      const cardUuids = getCards([{ set: card.set, collectorNumber: card.collectorNumber }]);
+      for(const uuid of cardUuids) {
+        try {
+          const cardInfo = { uuid: uuid, sessionId: card.sessionId, boosterId: card.boosterId, createdAt: card.createdAt };
+          saveCard(cardInfo);
+          addedCards.push(cardInfo);
+        } catch (e) {
+        }
+      }
+    }
+
+    if(req.body.length > 0 && addedCards.length === 0) {
+      res.status(409).send({ error: 'All cards already saved' });
+      return;
+    }
+    res.status(204).send(addedCards);
+  })
+
+  app.delete('/card', bodyParser.json(), async (req: Request, res: Response) => {
     const cardUuids = getCards([{ set: req.body.set, collectorNumber: req.body.collectorNumber }]);
     for(const uuid of cardUuids) {
       try {
