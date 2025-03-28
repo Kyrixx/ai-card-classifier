@@ -18,7 +18,7 @@ import { MatIcon } from '@angular/material/icon';
   template: `
     <cdk-accordion-item #accordionItem="cdkAccordionItem"
                         class="flex flex-col min-w-full border border-gray-700 rounded-md"
-                        expanded="false">
+                        [expanded]="isBoosterActive()">
       <button
         (click)="accordionItem.toggle()"
         class="flex flex-col justify-start w-full px-2"
@@ -43,7 +43,7 @@ import { MatIcon } from '@angular/material/icon';
               <div
                 class="flex flex-grow justify-around cursor-pointer"
                 (click)="onItemClick(item)"
-                [class.selected]="isSelected(item)"
+                [class.bg-purple-500]="isSelected(item)"
               >
                 <div class="flex justify-start flex-grow">
                   @for (mana of extractManaValues(item.card.mana_cost); track $index) {
@@ -58,9 +58,9 @@ import { MatIcon } from '@angular/material/icon';
                   >{{ getCardName(item.card) }}</span>
                   <mat-icon *ngIf="item.isDoublon" class="small-icon">content_copy</mat-icon>
                 </div>
-                <div class="flex justify-end flex-grow">
-                  <span>{{ item.card.set | uppercase }}</span>
-                  <span class="mx-1">{{ item.card.collector_number }}</span>
+                <div class="flex justify-end info">
+                  <span class="flex">{{ item.card.set | uppercase }}</span>
+                  <span class="mx-1">{{ getCollectorNumber(item.card) }}</span>
                   <span
                     class="mx-1"
                     [class.text-red-500]="parseInt(getCardPrice(item.card)) >= 10"
@@ -147,6 +147,12 @@ export class BoosterAccordionComponent {
 
   getCardName(card: Card): string {
     return card.printed_name?.length > 0 ? card.printed_name : card.name;
+  }
+
+  getCollectorNumber(card: Card): string {
+    let collectorNumberLength = card.collector_number.length;
+
+    return collectorNumberLength === 1 ? `00${card.collector_number}` : collectorNumberLength === 2 ? `0${card.collector_number}` : card.collector_number;
   }
 
   getCardPrice(card: Card): string {
