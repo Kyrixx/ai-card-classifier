@@ -35,3 +35,14 @@ const deleteCardQuery = myDb.prepare(`
 export function deleteCard(params: { uuid: string, sessionId: string, boosterId: number, createdAt: number }) {
   deleteCardQuery.run(params);
 }
+
+const createSessionQuery = myDb.prepare(`
+  INSERT INTO sessions (sessionId, type) VALUES (:sessionId, :type)
+`);
+const getSessionsByIdQuery = myDb.prepare(`
+  SELECT * FROM sessions WHERE sessionId = :id
+`);
+export function createSession(params: { sessionId: string, type: string }) {
+  createSessionQuery.run(params);
+  return getSessionsByIdQuery.get({ id: params.sessionId });
+}

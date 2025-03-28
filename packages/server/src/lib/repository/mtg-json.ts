@@ -21,16 +21,19 @@ const getCardQuery = mtgJsonDb.prepare(`
 `);
 export function getCards(params: { set: string, collectorNumber: string }[]): string[] {
   return params.map((param) => {
-    return (getCardQuery.get(param) as any).uuid as string;
+    let newVar = getCardQuery.get({
+      set: param.set.toUpperCase(),
+      collectorNumber: param.collectorNumber
+    }) as any;
+    return newVar.uuid as string;
   })
 }
 
 const distinctSetCodesQuery = mtgJsonDb.prepare(`
     SELECT DISTINCT code
     FROM sets
-    WHERE parentCode is null
-      AND totalSetSize > 0
+    WHERE totalSetSize > 0 AND releaseDate > '2015-01-01' AND type not in ('alchemy', 'promo')
 `);
 export function getDistinctSetCodes(): string[] {
-  return distinctSetCodesQuery.all() as string[];
+  return distinctSetCodesQuery.all().map((set: any) => set.code);
 }

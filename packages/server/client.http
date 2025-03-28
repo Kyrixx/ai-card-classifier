@@ -1,8 +1,40 @@
 @base_url = https://localhost:3100
-
+### GET Card Count
 GET {{base_url}}/set/DFT/card-count
 Accept: application/json
 
-###
+### GET Scryfall Sets
 GET {{base_url}}/set/scryfall-sets
 Accept: application/json
+
+### Post card
+POST {{base_url}}/save/card
+Content-Type: application/json
+
+{
+    "set": "DFT",
+    "collectorNumber": "202",
+    "sessionId": "abcd",
+    "boosterId": 1,
+    "createdAt": 1743117649000
+}
+
+### DELETE card
+DELETE {{base_url}}/save/card
+Content-Type: application/json
+
+{
+  "set": "DFT",
+  "collectorNumber": "201",
+  "sessionId": "abcd",
+  "boosterId": 1,
+  "createdAt": 1743117649000
+}
+
+### POST sesion
+POST {{base_url}}/save/session
+Content-Type: application/json
+
+{
+    "type": "display_opening"
+}

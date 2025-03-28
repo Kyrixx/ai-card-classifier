@@ -1,10 +1,19 @@
 import express, { type Request, type Response } from 'express';
 import { getCards } from '../lib/repository/mtg-json';
-import { deleteCard, saveCard } from '../lib/repository/my-db';
+import { createSession, deleteCard, saveCard } from '../lib/repository/my-db';
 import bodyParser from 'body-parser';
 
 export function save(): express.Router {
   const app = express.Router();
+
+  app.post('/session', bodyParser.json(), async (req: Request, res: Response) => {
+    if (!req.body.type) {
+      res.status(400).send({ error: 'Expected session type' });
+      return;
+    }
+    const session = createSession({ sessionId: Math.random().toString(36).substring(2, 15), type: req.body.type });
+    res.status(200).send(session);
+  });
 
   app.post('/card', bodyParser.json(), async (req: Request, res: Response) => {
     const cardUuids = getCards([{ set: req.body.set, collectorNumber: req.body.collectorNumber }]);
@@ -13,6 +22,7 @@ export function save(): express.Router {
         saveCard({ uuid: uuid, sessionId: req.body.sessionId, boosterId: req.body.boosterId, createdAt: req.body.createdAt });
       } catch (e) {
         res.status(409).send({ error: 'Card already saved' });
+        console.log(e);
         return;
       }
     }

@@ -22,7 +22,7 @@ import { ApiService } from '../services/api.service';
   template: `
     <div class="flex flex-col align-center max-w-sm border-2 border-gray-400 rounded-xl p-2">
       <div class="flex flex-row items-center justify-center mb-4">
-        <p>Total : {{ totalPrice().toFixed(2) }} € | Booster : {{ boosterId() }}</p>
+        <p>Total : {{ totalPrice().toFixed(2) }} € | Booster : {{ boosterId() }} | Session : {{ sessionId }}</p>
       </div>
 
       <app-card-display
@@ -66,6 +66,7 @@ import { ApiService } from '../services/api.service';
         <button class="bg-orange-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1" (click)="readCard()">Read
           Card
         </button>
+        <button (click)="saveHistory()">history</button>
       </div>
     </div>
 
@@ -170,12 +171,12 @@ export class LayoutComponent implements OnInit {
   }
 
   async ngOnInit() {
-    this.loadSession();
     this.listenWebsocketEvents();
+    await this.loadSession();
     this.stream = await ProcessorService.triggerVideo();
   }
 
-  loadSession() {
+  async loadSession() {
     this.totalPrice.set(!!this.storage.get('price') ? parseFloat(this.storage.get('price')!) : 0.0);
 
     this.history.set(JSON.parse(this.storage.get('history') ?? '[]').reduce((acc: HistoryItem[], h: HistoryItem) => {
@@ -192,7 +193,7 @@ export class LayoutComponent implements OnInit {
 
     this.currentHistoryItem.set(this.history().at(-1) ?? null);
     this.boosterId.set(this.history().length > 0 ? this.history().at(-1)!.boosterId : 1);
-    this.sessionId = this.storage.get('sessionId') ?? this.generateSessionId();
+    this.sessionId = this.storage.get('sessionId') ?? (await lastValueFrom(this.apiWebservice.createSession({ type: 'display_opening' }))).sessionId;
   }
 
   listenWebsocketEvents() {
@@ -254,13 +255,6 @@ export class LayoutComponent implements OnInit {
     if(parseInt(this.card()?.prices?.eur ?? '0.0') >= 10) {
       await AudioService.sparkles();
     }
-    await lastValueFrom(this.apiWebservice.saveCard({
-      set: card.set,
-      collectorNumber: card.collector_number,
-      boosterId: this.boosterId(),
-      sessionId: this.sessionId,
-      createdAt: historyItem.date,
-    }));
     this.saveSession();
   }
 
@@ -278,7 +272,7 @@ export class LayoutComponent implements OnInit {
     }));
   }
 
-  resetSession() {
+  async resetSession() {
     if (!window.confirm('Are you sure you want to reset the session?')) {
       return;
     }
@@ -288,7 +282,7 @@ export class LayoutComponent implements OnInit {
     this.history.set([]);
     this.boosterId.set(1);
     this.webSocketState.set(Loading.Initial);
-    this.sessionId = this.generateSessionId();
+    this.sessionId = (await lastValueFrom(this.apiWebservice.createSession({ type: 'display_opening' }))).sessionId;
   }
 
   handleItemClicked(event: any) {
@@ -334,7 +328,10 @@ export class LayoutComponent implements OnInit {
     return history.some((h) => h.card.printed_name === card.printed_name);
   }
 
-  generateSessionId() {
-    return Math.random().toString(36).substring(2, 15);
+  async saveHistory() {
+    await lastValueFrom(this.apiWebservice.saveCards({
+      history: this.history(),
+      sessionId: this.sessionId,
+    }));
   }
 }
