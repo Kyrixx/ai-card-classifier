@@ -47,7 +47,7 @@ export class CardDisplayComponent {
   @Input() card: Card | null = null;
   @Input() loadingState: Loading = Loading.Initial;
 
-  protected readonly width = 300;
+  protected readonly width = 600;
   readonly LoadingLabels: Record<Loading, string> = {
     [Loading.Initial]: 'Waiting for request...',
     [Loading.Clicked]: 'Detection requested',
@@ -60,7 +60,7 @@ export class CardDisplayComponent {
   };
 
   getCardImage(card: Card): string {
-    return card.image_uris?.large.length > 0 ? card.image_uris.large : card.image_uris.png;
+    return card.image_uris?.png.length > 0 ? card.image_uris.png : card.image_uris.large;
   }
 
   getCardPrice(card: Card): string {

@@ -25,10 +25,7 @@ import { ApiService } from '../services/api.service';
         <p>Total : {{ totalPrice().toFixed(2) }} € | Booster : {{ boosterId() }} | Session : {{ sessionId }}</p>
       </div>
 
-      <app-card-display
-        [card]="card()"
-        [loadingState]="webSocketState()"
-      ></app-card-display>
+      <video id="feedback" autoplay class="flex" [srcObject]="stream"></video>
 
       <div class="flex flex-col max-w-sm mx-12 mt-4 bg-gray-700">
         <div class="flex w-full items-center">
@@ -82,7 +79,10 @@ import { ApiService } from '../services/api.service';
       class="flex flex-col flex-1 max-h-full items-center"
       [class.video-container]="webSocketState() === Loading.Requested"
     >
-      <video id="feedback" autoplay class="flex" [srcObject]="stream"></video>
+      <app-card-display
+        [card]="card()"
+        [loadingState]="webSocketState()"
+      ></app-card-display>
     </div>
 
   `,
