@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI, ResponseSchema, SchemaType } from '@google/generative-ai';
 import * as fs from 'fs';
 import { io } from './websocket';
-import { fetchSets, sets } from './sets';
+import { fetchSets } from './sets';
 
 function fileToGenerativePart(path: string, mimeType: string) {
   return {
@@ -19,7 +19,7 @@ export async function getCardInfoFromAI(filename: string): Promise<string> {
   }
   const genAI = new GoogleGenerativeAI(apiKey);
 
-  let parse = fetchSets().map((set) => set.toUpperCase());
+  let sets = fetchSets().map((set) => set.toUpperCase());
 
   const schema: ResponseSchema = {
     type: SchemaType.OBJECT,
@@ -33,7 +33,7 @@ export async function getCardInfoFromAI(filename: string): Promise<string> {
       },
       set: {
         type: SchemaType.STRING,
-        enum: parse,
+        enum: sets,
       },
       collector_number: {
         type: SchemaType.INTEGER,
@@ -44,7 +44,6 @@ export async function getCardInfoFromAI(filename: string): Promise<string> {
     },
     required: ["name", "set", "collector_number"]
   }
-  fs.writeFileSync('./config.json', JSON.stringify(schema, null, 2));
 
   const model = genAI.getGenerativeModel({
     model: "gemini-2.0-flash",
@@ -63,7 +62,7 @@ export async function getCardInfoFromAI(filename: string): Promise<string> {
     If it does contain a card :
     Extract the name, set code, foilness and the collector number from the given image.
     A set code is a string of 3 or 4 characters.
-    List of valid of set code : ${parse.join(', ')}.
+    List of valid of set code : ${sets.join(', ')}.
     Collector number is a number between 1 and 999.
     The card is considered foil if has a star next to the set code.
     The card is considered non foil if has a dot next to the set code.
