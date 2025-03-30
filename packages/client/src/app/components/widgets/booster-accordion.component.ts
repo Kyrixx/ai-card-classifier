@@ -1,8 +1,8 @@
 import { Component, input, output, signal } from '@angular/core';
 import { CdkAccordionModule } from '@angular/cdk/accordion';
 import { NgClass, NgIf, UpperCasePipe } from '@angular/common';
-import { Card } from '../models/scryfall';
-import { HistoryItem } from '../models/history-item';
+import { Card } from '../../models/scryfall';
+import { HistoryItem } from '../../models/history-item';
 import { MatIcon } from '@angular/material/icon';
 
 @Component({

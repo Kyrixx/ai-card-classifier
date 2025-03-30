@@ -1,7 +1,7 @@
 import { Component, input, output } from '@angular/core';
 import { BoosterAccordionComponent } from './booster-accordion.component';
 import { CdkAccordion } from '@angular/cdk/accordion';
-import { HistoryItem } from '../models/history-item';
+import { HistoryItem } from '../../models/history-item';
 
 @Component({
   standalone: true,

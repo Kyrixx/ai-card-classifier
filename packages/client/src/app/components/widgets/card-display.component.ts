@@ -1,7 +1,7 @@
 import { Component, Input } from '@angular/core';
 import { NgClass, NgIf, UpperCasePipe } from '@angular/common';
-import { Loading } from '../models/loading.enum';
-import { Card } from '../models/scryfall';
+import { Loading } from '../../models/loading.enum';
+import { Card } from '../../models/scryfall';
 
 @Component({
   standalone: true,
