@@ -3,6 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { SetCardCount } from '../models/api/set-card-count';
 import { HistoryItem } from '../models/history-item';
 import { Session } from '../models/api/session';
+import { of } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -22,14 +23,15 @@ export class ApiService {
   saveCards(params: {history: HistoryItem[], sessionId: string}) {
     const cards = params.history.map((item) => {
       return {
-        set: item.card.set,
-        collectorNumber: item.card.collector_number,
+        set: item.card.setCode,
+        collectorNumber: item.card.number,
         boosterId: item.boosterId,
         createdAt: item.date,
         sessionId: params.sessionId
       };
     });
-    return this.http.post(`${this.baseUrl}/save/cards`, cards);
+    // return this.http.post(`${this.baseUrl}/save/cards`, cards);
+    return(of({}))
   }
 
   deleteCard(params: { set: string, collectorNumber: string, boosterId: number, sessionId: string, createdAt: number }) {
@@ -38,5 +40,9 @@ export class ApiService {
 
   createSession(params: { type: string }) {
     return this.http.post<Session>(`${this.baseUrl}/save/session`, params);
+  }
+
+  getSession(sessionId: string) {
+    return this.http.get<HistoryItem[]>(`${this.baseUrl}/save/session/${sessionId}`);
   }
 }

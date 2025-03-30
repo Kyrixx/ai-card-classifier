@@ -1,7 +1,22 @@
 import axios from 'axios';
+import { getCard } from './repository/mtg-json';
+import { getPrices } from './repository/mtg-prices';
+
+function buildScryfallImageUrl(id: string) {
+  const fileFace: string = 'front';
+  const fileType: string = 'png';
+  const fileFormat: string = 'png';
+  const fileName: string = id;
+  const dir1: string = fileName.charAt(0);
+  const dir2: string = fileName.charAt(1);
+  return `https://cards.scryfall.io/${fileType}/${fileFace}/${dir1}/${dir2}/${fileName}.${fileFormat}`;
+}
+
+function buildGathererImageUrl(id: string): string {
+  return `https://gatherer.wizards.com/Handlers/Image.ashx?type=card&multiverseid=${id}`;
+}
 
 export async function getCardFromScryfall(set: string, collector_number: number) {
-  console.log(`[mtg] ${set}/${collector_number}`);
   return Promise.all([
     axios.get(`https://api.scryfall.com/cards/${set}/${collector_number}/fr`)
       .then((response) => response.data)
@@ -41,18 +56,28 @@ export async function getSetsFromScryfall() {
     .catch((error) => console.log(error));
 }
 
-export function getSetInfoFromScryfall(set: string) {
-  return axios.get(`https://api.scryfall.com/sets/${set}`)
-    .then((response) => response.data)
-    .catch((error) => console.log(error));
-}
-
-export function getCardCountForSet(set: string) {
-  return axios.get(`https://api.scryfall.com/cards/search?order=set&q=e%3A${set}&unique=cards`)
-    .then((response) => response.data.total_cards)
-    .catch((error) => console.log(error));
-}
-
 export function assertCardIsUsable(card: any): boolean {
-  return !!card && !!card.image_uris && !!card.rarity && !!card.set && !!card.collector_number && !!card.name;
+  if(!card) {
+    return false;
+  }
+
+  const requiredFields = ['imageUris', 'rarity', 'setCode', 'number', 'name'];
+  for(const field of requiredFields) {
+    if(!card[field]) {
+      console.log(field);
+      return false;
+    }
+  }
+  return !!card && !!card.imageUris && !!card.rarity && !!card.setCode && !!card.number && !!card.name;
+}
+
+export function getCardFromMtgJson(set: string, collector_number: number) {
+  const card = getCard({ set, collectorNumber: collector_number.toString() }) as any;
+  const prices = getPrices(card.uuid);
+
+  return {
+    ...card,
+    imageUris: { en: buildScryfallImageUrl(card.identifiers.scryfallId), fr: buildGathererImageUrl(card.foreignData[0].multiverseId) },
+    prices
+  };
 }

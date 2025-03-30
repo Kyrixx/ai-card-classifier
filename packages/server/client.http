@@ -38,3 +38,13 @@ Content-Type: application/json
 {
     "type": "display_opening"
 }
+
+### Get session
+GET {{base_url}}/save/session/0bt2x95692dp
+Accept: application/json
+
+### Update price version
+POST {{base_url}}/update-prices
+Content-Type: application/json
+
+{}

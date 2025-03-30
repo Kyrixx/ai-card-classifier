@@ -12,6 +12,7 @@ import { TtsService } from '../services/tts.service';
 import { AudioService } from '../services/audio.service';
 import { lastValueFrom } from 'rxjs';
 import { ApiService } from '../services/api.service';
+import { getCardPrice, getFrenchCard } from '../models/mtg-json';
 
 @Component({
   selector: 'app-layout',
@@ -128,18 +129,18 @@ export class DisplayOpeningComponent implements OnInit {
   collectionCompletion = computed(() => {
     const history = this.history()
     return {
-      total: [...new Set(history.map(h => h.card.oracle_id))].length,
-      [RarityEnum.Common]: [...new Set(history.filter(h => h.card.rarity === RarityEnum.Common).map(h => h.card.oracle_id))].length,
-      [RarityEnum.Uncommon]: [...new Set(history.filter(h => h.card.rarity === RarityEnum.Uncommon).map(h => h.card.oracle_id))].length,
-      [RarityEnum.Rare]: [...new Set(history.filter(h => h.card.rarity === RarityEnum.Rare).map(h => h.card.oracle_id))].length,
-      [RarityEnum.Mythic]: [...new Set(history.filter(h => h.card.rarity === RarityEnum.Mythic).map(h => h.card.oracle_id))].length,
+      total: [...new Set(history.map(h => h.card.uuid))].length,
+      [RarityEnum.Common]: [...new Set(history.filter(h => h.card.rarity === RarityEnum.Common).map(h => h.card.uuid))].length,
+      [RarityEnum.Uncommon]: [...new Set(history.filter(h => h.card.rarity === RarityEnum.Uncommon).map(h => h.card.uuid))].length,
+      [RarityEnum.Rare]: [...new Set(history.filter(h => h.card.rarity === RarityEnum.Rare).map(h => h.card.uuid))].length,
+      [RarityEnum.Mythic]: [...new Set(history.filter(h => h.card.rarity === RarityEnum.Mythic).map(h => h.card.uuid))].length,
     }
   });
   boosterId = signal<number>(1);
   card = computed<Card | null>(() => this.currentHistoryItem()?.card ?? null);
   cardCounts = computed<Record<RarityEnum, number>>(() => {
     return this.history().reduce((acc: Record<RarityEnum, number>, h: HistoryItem) => {
-      acc[h.card.rarity]++;
+      acc[h.card.rarity as RarityEnum]++;
       return acc;
     }, {
       [RarityEnum.Common]: 0,
@@ -148,7 +149,7 @@ export class DisplayOpeningComponent implements OnInit {
       [RarityEnum.Mythic]: 0,
     });
   });
-  totalPrice = signal<number>(0.0);
+  totalPrice = computed<number>(() => this.history().reduce((acc, h) => acc + getCardPrice(h.card), 0));
   webSocketState = signal<Loading>(Loading.Initial);
 
   readonly WebSocketEvent: Record<Loading, string> = {
@@ -178,7 +179,7 @@ export class DisplayOpeningComponent implements OnInit {
   }
 
   async loadSession() {
-    this.totalPrice.set(!!this.storage.get('price') ? parseFloat(this.storage.get('price')!) : 0.0);
+    // this.totalPrice.set(!!this.storage.get('price') ? parseFloat(this.storage.get('price')!) : 0.0);
 
     this.history.set(JSON.parse(this.storage.get('history') ?? '[]').reduce((acc: HistoryItem[], h: HistoryItem) => {
       return [
@@ -195,6 +196,9 @@ export class DisplayOpeningComponent implements OnInit {
     this.currentHistoryItem.set(this.history().at(-1) ?? null);
     this.boosterId.set(this.history().length > 0 ? this.history().at(-1)!.boosterId : 1);
     this.sessionId = this.storage.get('sessionId') ?? (await lastValueFrom(this.apiWebservice.createSession({ type: 'display_opening' }))).sessionId;
+    this.sessionId = '0bt2x95692dp';
+    const savedHistory = await lastValueFrom(this.apiWebservice.getSession(this.sessionId));
+    this.history.set(savedHistory);
   }
 
   listenWebsocketEvents() {
@@ -252,8 +256,8 @@ export class DisplayOpeningComponent implements OnInit {
     };
     this.history.set([...this.history(), historyItem]);
     this.currentHistoryItem.set(historyItem);
-    this.totalPrice.update((price) => price + parseFloat(this.card()?.prices?.eur ?? '0.0'));
-    if(parseInt(this.card()?.prices?.eur ?? '0.0') >= 10) {
+    // this.totalPrice.update((price) => price + getCardPrice(this.card()));
+    if(getCardPrice(this.card()) >= 10) {
       await AudioService.sparkles();
     }
     this.saveSession();
@@ -279,7 +283,7 @@ export class DisplayOpeningComponent implements OnInit {
     }
     this.storage.resetSession();
     this.currentHistoryItem.set(null);
-    this.totalPrice.set(0.0);
+    // this.totalPrice.set(0.0);
     this.history.set([]);
     this.boosterId.set(1);
     this.webSocketState.set(Loading.Initial);
@@ -297,10 +301,10 @@ export class DisplayOpeningComponent implements OnInit {
     const removedCard = item.card;
     this.history.set(this.history().filter((h) => h.date !== item.date));
     this.currentHistoryItem.set(this.history().at(-1) ?? null);
-    this.totalPrice.update((price) => price - parseFloat(removedCard.prices.eur ?? '0.0'));
+    // this.totalPrice.update((price) => price - getCardPrice(removedCard));
     await lastValueFrom(this.apiWebservice.deleteCard({
-      set: removedCard.set,
-      collectorNumber: removedCard.collector_number,
+      set: removedCard.setCode,
+      collectorNumber: removedCard.number,
       boosterId: item.boosterId,
       sessionId: this.sessionId,
       createdAt: item.date,
@@ -309,24 +313,26 @@ export class DisplayOpeningComponent implements OnInit {
   }
 
   readCard() {
-    const textToRead = this.card()?.printed_text ?? '';
+    const textToRead = getFrenchCard(this.card())?.text ?? '';
+    let text = textToRead
+      .replace(/\{T\}/g, 'Engagez cette carte')
+      .replace(/\{Q\}/g, 'Dégagez cette carte')
+      .replace(/\{W\}/g, 'Mana blanc')
+      .replace(/\{U\}/g, 'Mana bleu')
+      .replace(/\{B\}/g, 'Mana noir')
+      .replace(/\{R\}/g, 'Mana rouge')
+      .replace(/\{G\}/g, 'Mana vert')
+      .replace(/\{C\}/g, 'Mana incolore')
+      .replace(/\(.+\)/gi, ' ')
+      .replace(/\//g, ' ')
+      .replace(/\\n/gi, '. ');
     this.tts.speak(
-      textToRead
-        .replace(/\{T\}/g, 'Engagez cette carte')
-        .replace(/\{Q\}/g, 'Dégagez cette carte')
-        .replace(/\{W\}/g, 'Mana blanc')
-        .replace(/\{U\}/g, 'Mana bleu')
-        .replace(/\{B\}/g, 'Mana noir')
-        .replace(/\{R\}/g, 'Mana rouge')
-        .replace(/\{G\}/g, 'Mana vert')
-        .replace(/\{C\}/g, 'Mana incolore')
-        .replace(/\(*.\)/g, '')
-        .replace(/\//g, '')
+      `${text}.`
     );
   }
 
   isCardDoublon(card: Card, history: HistoryItem[]): boolean {
-    return history.some((h) => h.card.printed_name === card.printed_name);
+    return history.some((h) => getFrenchCard(h.card)?.name === getFrenchCard(card)?.name);
   }
 
   async saveHistory() {

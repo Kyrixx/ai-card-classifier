@@ -4,6 +4,7 @@ import { NgClass, NgIf, UpperCasePipe } from '@angular/common';
 import { Card } from '../../models/scryfall';
 import { HistoryItem } from '../../models/history-item';
 import { MatIcon } from '@angular/material/icon';
+import { getCardName, getCardPrice } from '../../models/mtg-json';
 
 @Component({
   selector: 'booster-content',
@@ -41,7 +42,7 @@ import { MatIcon } from '@angular/material/icon';
               [class.bg-purple-500]="isSelected(item)"
             >
               <div class="flex justify-start flex-grow">
-                @for (mana of extractManaValues(item.card.mana_cost); track $index) {
+                @for (mana of extractManaValues(item.card.manaCost); track $index) {
                   <span
                     class="ms ms-cost ms-shadow"
                     [ngClass]="'ms-' + mana.toLowerCase()"
@@ -54,15 +55,15 @@ import { MatIcon } from '@angular/material/icon';
                 <mat-icon *ngIf="item.isDoublon" class="small-icon">content_copy</mat-icon>
               </div>
               <div class="flex justify-end info">
-                <span class="flex">{{ item.card.set | uppercase }}</span>
+                <span class="flex">{{ item.card.setCode | uppercase }}</span>
                 <span class="mx-1">{{ getCollectorNumber(item.card) }}</span>
                 <span
                   class="mx-1"
-                  [class.text-red-500]="parseInt(getCardPrice(item.card)) >= 10"
-                  [class.font-bold]="parseInt(getCardPrice(item.card)) >= 10"
-                  [class.underline]="parseInt(getCardPrice(item.card)) >= 10"
-                  [class.text-blue-500]="parseInt(getCardPrice(item.card)) >= 5"
-                  [class.text-green-500]="parseInt(getCardPrice(item.card)) >= 1"
+                  [class.text-red-500]="getCardPrice(item.card) >= 10"
+                  [class.font-bold]="getCardPrice(item.card) >= 10"
+                  [class.underline]="getCardPrice(item.card) >= 10"
+                  [class.text-blue-500]="getCardPrice(item.card) >= 5"
+                  [class.text-green-500]="getCardPrice(item.card) >= 1"
                 >{{ getCardPrice(item.card) }}</span>
               </div>
             </div>
@@ -122,13 +123,18 @@ export class BoosterContentComponent {
 
   onItemClick(item: HistoryItem) {
     this.itemActivated.set(item);
+    console.log('item activated', item);
     this.activatedItem.emit(item);
   }
 
-  extractManaValues(input: string): string[] {
+  extractManaValues(input?: string): string[] {
+    if(!input) {
+      return [];
+    }
+
     const manaValues: string[] = [];
     const regex = /\{([^\}]+)\}/g;
-    const computedInput = input?.split(' // ')[0];
+    const computedInput = input.split(' // ')[0];
     let match;
 
     while ((match = regex.exec(computedInput)) !== null) {
@@ -138,36 +144,18 @@ export class BoosterContentComponent {
     return manaValues;
   }
 
-  getCardName(card: Card): string {
-    return card.printed_name?.length > 0 ? card.printed_name : card.name;
-  }
-
   getCollectorNumber(card: Card): string {
-    let collectorNumberLength = card.collector_number.length;
+    let collectorNumberLength = card.number.length;
 
-    return collectorNumberLength === 1 ? `00${card.collector_number}` : collectorNumberLength === 2 ? `0${card.collector_number}` : card.collector_number;
-  }
-
-  getCardPrice(card: Card): string {
-    if(card.prices.eur?.length > 0) {
-      return `${card.prices.eur}€`;
-    }
-
-    if(card.prices.usd?.length > 0) {
-      return `${card.prices.eur}$`;
-    }
-    return 'N/A';
+    return collectorNumberLength === 1 ? `00${card.number}` : collectorNumberLength === 2 ? `0${card.number}` : card.number;
   }
 
   getBoosterPrice(items: HistoryItem[]): string {
     return items.reduce((acc, item) => {
-      let cardPrice = 0.0;
-      if(item.card.prices.eur?.length > 0) {
-        cardPrice = parseFloat(item.card.prices.eur);
-      } else if(item.card.prices.usd?.length > 0) {
-        cardPrice = parseFloat(item.card.prices.usd);
-      }
-      return acc + cardPrice;
+      return acc + getCardPrice(item.card);
     }, 0).toFixed(2);
   }
+
+  protected readonly getCardName = getCardName;
+  protected readonly getCardPrice = getCardPrice;
 }

@@ -46,3 +46,10 @@ export function createSession(params: { sessionId: string, type: string }) {
   createSessionQuery.run(params);
   return getSessionsByIdQuery.get({ id: params.sessionId });
 }
+
+const getCardsBySessionIdQuery = myDb.prepare(`
+  SELECT * FROM cards WHERE sessionId = :sessionId
+`);
+export function getCardsBySessionId(sessionId: string) {
+  return getCardsBySessionIdQuery.all({ sessionId });
+}

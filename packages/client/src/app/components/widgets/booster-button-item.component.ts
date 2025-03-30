@@ -2,6 +2,7 @@ import { Component, input, output } from '@angular/core';
 import { HistoryItem } from '../../models/history-item';
 import { NgIf } from '@angular/common';
 import { CdkOption } from '@angular/cdk/listbox';
+import { getCardPrice } from '../../models/mtg-json';
 
 @Component({
   standalone: true,
@@ -26,14 +27,7 @@ export class BoosterButtonItemComponent {
   onItemClick = output<HistoryItem>();
 
   getBoosterPrice(items: HistoryItem[]): string {
-    return items.reduce((acc, item) => {
-      let cardPrice = 0.0;
-      if (item.card.prices?.eur?.length > 0) {
-        cardPrice = parseFloat(item.card.prices.eur);
-      } else if (item.card.prices?.usd?.length > 0) {
-        cardPrice = parseFloat(item.card.prices.usd);
-      }
-      return acc + cardPrice;
-    }, 0).toFixed(2);
+    return items.reduce((acc, item) =>
+      acc + getCardPrice(item.card), 0).toFixed(2);
   }
 }

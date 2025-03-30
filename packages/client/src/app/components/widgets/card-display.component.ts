@@ -2,6 +2,7 @@ import { Component, Input } from '@angular/core';
 import { NgClass, NgIf, UpperCasePipe } from '@angular/common';
 import { Loading } from '../../models/loading.enum';
 import { Card } from '../../models/scryfall';
+import { getCardImageUrl, getCardPrice } from '../../models/mtg-json';
 
 @Component({
   standalone: true,
@@ -9,7 +10,7 @@ import { Card } from '../../models/scryfall';
   template: `
     <section class="flex flex-col items-center min-h-auto">
       <div *ngIf="!!card" class="relative">
-        <img class="justify-center min-h-75" [src]="getCardImage(card)" [width]="width"
+        <img class="justify-center min-h-75" [src]="getCardImageUrl(card)" [width]="width"
              [height]="width*1.31"
              alt="Card" />
         <div *ngIf="loadingState !== Loading.Finished" class="loading-text absolute z-1 text-white italic bg-blue-700 w-full text-center">
@@ -21,7 +22,7 @@ import { Card } from '../../models/scryfall';
         {{ LoadingLabels[loadingState] }}
       </div>
       <div *ngIf="card" class="flex flex-row justify-evenly min-w-full">
-        <p>Set : {{ card.set | uppercase }}</p>
+        <p>Set : {{ card.setCode | uppercase }}</p>
         <p class="align-center">Prix : {{ getCardPrice(card) }}</p>
       </div>
     </section>
@@ -59,13 +60,7 @@ export class CardDisplayComponent {
     [Loading.Error]: 'No card detected',
   };
 
-  getCardImage(card: Card): string {
-    return card.image_uris?.png.length > 0 ? card.image_uris.png : card.image_uris.large;
-  }
-
-  getCardPrice(card: Card): string {
-    return card.prices.eur?.length > 0 ? `${card.prices.eur}€` : 'N/A';
-  }
-
   protected readonly Loading = Loading;
+  protected readonly getCardPrice = getCardPrice;
+  protected readonly getCardImageUrl = getCardImageUrl;
 }
