@@ -6,7 +6,7 @@ import { HistoryItem } from '../../models/history-item';
 import { MatIcon } from '@angular/material/icon';
 
 @Component({
-  selector: 'booster-accordion-item',
+  selector: 'booster-content',
   imports: [
     CdkAccordionModule,
     NgIf,
@@ -16,17 +16,13 @@ import { MatIcon } from '@angular/material/icon';
   ],
   standalone: true,
   template: `
-    <cdk-accordion-item #accordionItem="cdkAccordionItem"
-                        class="flex flex-col min-w-full border border-gray-700 rounded-md"
-                        [expanded]="isBoosterActive()">
+    <div class="flex flex-col min-w-full border border-gray-700 rounded-md">
       <button
-        (click)="accordionItem.toggle()"
         class="flex flex-col justify-start w-full px-2"
       >
         <div class="flex w-full">
           <div class="flex w-full justify-around">
             <div class="flex justify-start flex-grow">
-              <span *ngIf="isBoosterActive()">✅</span>
               <p class="mx-3">Booster n°{{ boosterNumber() }} - {{ items().length }} cartes</p>
             </div>
             <div class="flex flex-grow justify-end">
@@ -36,50 +32,49 @@ import { MatIcon } from '@angular/material/icon';
         </div>
       </button>
 
-      @if (accordionItem.expanded) {
-        <div class="flex flex-col w-full px-1">
-          @for (item of items(); track item.date) {
-            <div class="flex flex-grow w-full justify-around">
-              <div
-                class="flex flex-grow justify-around cursor-pointer"
-                (click)="onItemClick(item)"
-                [class.bg-purple-500]="isSelected(item)"
-              >
-                <div class="flex justify-start flex-grow">
-                  @for (mana of extractManaValues(item.card.mana_cost); track $index) {
-                    <span
-                      class="ms ms-cost ms-shadow"
-                      [ngClass]="'ms-' + mana.toLowerCase()"
-                    ></span>
-                  }
+      <div class="flex flex-col w-full px-1">
+        @for (item of items(); track item.date) {
+          <div class="flex flex-grow w-full justify-around">
+            <div
+              class="flex flex-grow justify-around cursor-pointer"
+              (click)="onItemClick(item)"
+              [class.bg-purple-500]="isSelected(item)"
+            >
+              <div class="flex justify-start flex-grow">
+                @for (mana of extractManaValues(item.card.mana_cost); track $index) {
                   <span
-                    class="mx-1"
-                    [class.italic]="item.isDoublon"
-                  >{{ getCardName(item.card) }}</span>
-                  <mat-icon *ngIf="item.isDoublon" class="small-icon">content_copy</mat-icon>
-                </div>
-                <div class="flex justify-end info">
-                  <span class="flex">{{ item.card.set | uppercase }}</span>
-                  <span class="mx-1">{{ getCollectorNumber(item.card) }}</span>
-                  <span
-                    class="mx-1"
-                    [class.text-red-500]="parseInt(getCardPrice(item.card)) >= 10"
-                    [class.font-bold]="parseInt(getCardPrice(item.card)) >= 10"
-                    [class.underline]="parseInt(getCardPrice(item.card)) >= 10"
-                    [class.text-blue-500]="parseInt(getCardPrice(item.card)) >= 5"
-                    [class.text-green-500]="parseInt(getCardPrice(item.card)) >= 1"
-                  >{{ getCardPrice(item.card) }}</span>
-                </div>
+                    class="ms ms-cost ms-shadow"
+                    [ngClass]="'ms-' + mana.toLowerCase()"
+                  ></span>
+                }
+                <span
+                  class="mx-1"
+                  [class.italic]="item.isDoublon"
+                >{{ getCardName(item.card) }}</span>
+                <mat-icon *ngIf="item.isDoublon" class="small-icon">content_copy</mat-icon>
               </div>
-              <div class="mx-1 cursor-not-allowed" (click)="deleteItem.emit(item)">❌</div>
+              <div class="flex justify-end info">
+                <span class="flex">{{ item.card.set | uppercase }}</span>
+                <span class="mx-1">{{ getCollectorNumber(item.card) }}</span>
+                <span
+                  class="mx-1"
+                  [class.text-red-500]="parseInt(getCardPrice(item.card)) >= 10"
+                  [class.font-bold]="parseInt(getCardPrice(item.card)) >= 10"
+                  [class.underline]="parseInt(getCardPrice(item.card)) >= 10"
+                  [class.text-blue-500]="parseInt(getCardPrice(item.card)) >= 5"
+                  [class.text-green-500]="parseInt(getCardPrice(item.card)) >= 1"
+                >{{ getCardPrice(item.card) }}</span>
+              </div>
             </div>
-          }
-          <div class="flex justify-center" *ngIf="items().length === 0">Vide</div>
+            <div class="mx-1 cursor-not-allowed" (click)="deleteItem.emit(item)">❌</div>
+          </div>
+        }
+        <div class="flex justify-center" *ngIf="items().length === 0">Vide</div>
 
-        </div>
+      </div>
 
-      }
-    </cdk-accordion-item>
+
+    </div>
   `,
   styles: `
     .selected {
@@ -98,7 +93,7 @@ import { MatIcon } from '@angular/material/icon';
     }
   `,
 })
-export class BoosterAccordionComponent {
+export class BoosterContentComponent {
   readonly parseInt = parseInt;
   oldItemsCount = 0;
   items = input<HistoryItem[], HistoryItem[]>([], {
@@ -112,7 +107,6 @@ export class BoosterAccordionComponent {
   });
 
   boosterNumber = input(1);
-  isBoosterActive = input(true);
   activatedItem = output<HistoryItem>();
   deleteItem = output<HistoryItem>();
 
@@ -127,7 +121,6 @@ export class BoosterAccordionComponent {
   }
 
   onItemClick(item: HistoryItem) {
-    console.log('item clicked', item);
     this.itemActivated.set(item);
     this.activatedItem.emit(item);
   }
@@ -135,7 +128,7 @@ export class BoosterAccordionComponent {
   extractManaValues(input: string): string[] {
     const manaValues: string[] = [];
     const regex = /\{([^\}]+)\}/g;
-    const computedInput = input.split(' // ')[0];
+    const computedInput = input?.split(' // ')[0];
     let match;
 
     while ((match = regex.exec(computedInput)) !== null) {

@@ -70,7 +70,8 @@ import { ApiService } from '../services/api.service';
     <app-booster-list
       [history]="history()"
       [boosterId]="boosterId()"
-      (onItemClick)="handleItemClicked($event)"
+      (onCardClick)="handleItemClicked($event)"
+      (onBoosterClick)="boosterId.set($event)"
       (deleteItem)="deleteItem($event)"
       class="max-w-3xl"
     ></app-booster-list>
@@ -116,7 +117,7 @@ import { ApiService } from '../services/api.service';
     }
   `,
 })
-export class LayoutComponent implements OnInit {
+export class DisplayOpeningComponent implements OnInit {
   protected readonly Loading = Loading;
   protected stream: MediaStream | null = null;
   protected readonly width: number = 300;
