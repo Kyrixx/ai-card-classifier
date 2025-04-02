@@ -17,7 +17,12 @@ import { getCardPrice } from '../../models/mtg-json';
       </div>
     </div>
   `,
-  host: { 'class': 'flex flex-1 basis-1/4 border border-gray-700 rounded-md' },
+  host: {
+    'class': 'flex flex-1 rounded-md p-1',
+    '[class.border-b-4]': 'this.getBoosterPrice(items()) > 5.5',
+    '[class.border-pink-950]': 'this.getBoosterPrice(items()) > 5.5 && this.getBoosterPrice(items()) < 10',
+    '[class.border-orange-400]': 'this.getBoosterPrice(items()) >= 10',
+  },
   imports: [],
 })
 export class BoosterButtonItemComponent {

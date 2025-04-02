@@ -42,7 +42,7 @@ import { getCardName, getCardPrice } from '../../models/mtg-json';
               [class.bg-purple-500]="isSelected(item)"
             >
               <div class="flex justify-start flex-grow">
-                @for (mana of extractManaValues(item.card.manaCost); track $index) {
+                @for (mana of extractManaValues(item.card); track $index) {
                   <span
                     class="ms ms-cost ms-shadow"
                     [ngClass]="'ms-' + mana.toLowerCase()"
@@ -127,14 +127,18 @@ export class BoosterContentComponent {
     this.activatedItem.emit(item);
   }
 
-  extractManaValues(input?: string): string[] {
-    if(!input) {
+  extractManaValues(input?: Card): string[] {
+    if(!input){
       return [];
+    }
+
+    if(!input.manaCost){
+      return ['land'];
     }
 
     const manaValues: string[] = [];
     const regex = /\{([^\}]+)\}/g;
-    const computedInput = input.split(' // ')[0];
+    const computedInput = input.manaCost.split(' // ')[0];
     let match;
 
     while ((match = regex.exec(computedInput)) !== null) {

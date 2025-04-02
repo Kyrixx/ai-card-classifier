@@ -21,11 +21,10 @@ import { BoosterButtonItemComponent } from './booster-button-item.component';
             booster-item
             flex
             grow-0
-            basis-1/4
-            border
-            border-gray-700
+            basis-1/5
             rounded-md
             cursor-pointer
+            m-2
 "
             [class.bg-blue-500]="bid === boosterId()"
             (click)="onBoosterClick.emit(bid)"

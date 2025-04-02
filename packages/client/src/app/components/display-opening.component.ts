@@ -13,12 +13,14 @@ import { AudioService } from '../services/audio.service';
 import { lastValueFrom } from 'rxjs';
 import { ApiService } from '../services/api.service';
 import { getCardPrice, getFrenchCard } from '../models/mtg-json';
+import { LoadingSpinnerComponent } from './widgets/loading-spinner.component';
 
 @Component({
   selector: 'app-layout',
   imports: [
     BoosterListComponent,
     CardDisplayComponent,
+    LoadingSpinnerComponent,
   ],
   template: `
     <div class="flex flex-col align-center max-w-sm border-2 border-gray-400 rounded-xl p-2">
@@ -51,31 +53,36 @@ import { getCardPrice, getFrenchCard } from '../models/mtg-json';
       </div>
 
       <div class="flex justify-evenly mt-4 flex-wrap">
-        <button class="bg-blue-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1" (click)="detectCard()">Ask
+        <button class="bg-blue-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1 flex-1" (click)="detectCard()">Ask
           AI
         </button>
-        <button class="bg-blue-800 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1" (click)="resetSession()">
+        <button class="bg-blue-800 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1 flex-1" (click)="resetSession()">
           Reset
           Session
         </button>
-        <button class="bg-green-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1" (click)="nextBooster()">
+        <button class="bg-green-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1 flex-1" (click)="nextBooster()">
           Next booster
         </button>
-        <button class="bg-orange-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1" (click)="readCard()">Read
+        <button class="bg-orange-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1 flex-1" (click)="readCard()">Read
           Card
         </button>
-        <button (click)="saveHistory()">history</button>
       </div>
     </div>
 
-    <app-booster-list
-      [history]="history()"
-      [boosterId]="boosterId()"
-      (onCardClick)="handleItemClicked($event)"
-      (onBoosterClick)="boosterId.set($event)"
-      (deleteItem)="deleteItem($event)"
-      class="max-w-3xl"
-    ></app-booster-list>
+    @if (!loadingHistory()) {
+      <app-booster-list
+        [history]="history()"
+        [boosterId]="boosterId()"
+        (onCardClick)="handleItemClicked($event)"
+        (onBoosterClick)="boosterId.set($event)"
+        (deleteItem)="deleteItem($event)"
+        class="max-w-4xl"
+      ></app-booster-list>
+    } @else {
+      <app-loading-spinner
+        class="flex justify-center w-full max-w-4xl my-4"
+      ></app-loading-spinner>
+    }
 
     <div
       class="flex flex-col flex-1 max-h-full items-center"
@@ -125,6 +132,7 @@ export class DisplayOpeningComponent implements OnInit {
   protected sessionId: string = '';
 
   history = signal<HistoryItem[]>([]);
+  loadingHistory = signal<boolean>(false);
   currentHistoryItem = signal<HistoryItem | null>(null);
   collectionCompletion = computed(() => {
     const history = this.history()
@@ -179,8 +187,7 @@ export class DisplayOpeningComponent implements OnInit {
   }
 
   async loadSession() {
-    // this.totalPrice.set(!!this.storage.get('price') ? parseFloat(this.storage.get('price')!) : 0.0);
-
+    this.loadingHistory.set(true);
     this.history.set(JSON.parse(this.storage.get('history') ?? '[]').reduce((acc: HistoryItem[], h: HistoryItem) => {
       return [
         ...acc,
@@ -199,6 +206,7 @@ export class DisplayOpeningComponent implements OnInit {
     this.sessionId = '0bt2x95692dp';
     const savedHistory = await lastValueFrom(this.apiWebservice.getSession(this.sessionId));
     this.history.set(savedHistory);
+    this.loadingHistory.set(false);
   }
 
   listenWebsocketEvents() {
@@ -256,7 +264,6 @@ export class DisplayOpeningComponent implements OnInit {
     };
     this.history.set([...this.history(), historyItem]);
     this.currentHistoryItem.set(historyItem);
-    // this.totalPrice.update((price) => price + getCardPrice(this.card()));
     if(getCardPrice(this.card()) >= 10) {
       await AudioService.sparkles();
     }
@@ -283,7 +290,6 @@ export class DisplayOpeningComponent implements OnInit {
     }
     this.storage.resetSession();
     this.currentHistoryItem.set(null);
-    // this.totalPrice.set(0.0);
     this.history.set([]);
     this.boosterId.set(1);
     this.webSocketState.set(Loading.Initial);
@@ -301,7 +307,6 @@ export class DisplayOpeningComponent implements OnInit {
     const removedCard = item.card;
     this.history.set(this.history().filter((h) => h.date !== item.date));
     this.currentHistoryItem.set(this.history().at(-1) ?? null);
-    // this.totalPrice.update((price) => price - getCardPrice(removedCard));
     await lastValueFrom(this.apiWebservice.deleteCard({
       set: removedCard.setCode,
       collectorNumber: removedCard.number,
@@ -333,12 +338,5 @@ export class DisplayOpeningComponent implements OnInit {
 
   isCardDoublon(card: Card, history: HistoryItem[]): boolean {
     return history.some((h) => getFrenchCard(h.card)?.name === getFrenchCard(card)?.name);
-  }
-
-  async saveHistory() {
-    await lastValueFrom(this.apiWebservice.saveCards({
-      history: this.history(),
-      sessionId: this.sessionId,
-    }));
   }
 }
