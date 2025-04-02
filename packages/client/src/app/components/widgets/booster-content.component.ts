@@ -64,7 +64,7 @@ import { getCardName, getCardPrice } from '../../models/mtg-json';
                   [class.underline]="getCardPrice(item.card) >= 10"
                   [class.text-blue-500]="getCardPrice(item.card) >= 5"
                   [class.text-green-500]="getCardPrice(item.card) >= 1"
-                >{{ getCardPrice(item.card) }}</span>
+                >{{ getCardPrice(item.card).toFixed(2) }}€</span>
               </div>
             </div>
             <div class="mx-1 cursor-not-allowed" (click)="deleteItem.emit(item)">❌</div>
@@ -95,7 +95,8 @@ import { getCardName, getCardPrice } from '../../models/mtg-json';
   `,
 })
 export class BoosterContentComponent {
-  readonly parseInt = parseInt;
+  protected readonly getCardName = getCardName;
+  protected readonly getCardPrice = getCardPrice;
   oldItemsCount = 0;
   items = input<HistoryItem[], HistoryItem[]>([], {
     transform: (value: HistoryItem[]): HistoryItem[] => {
@@ -159,7 +160,4 @@ export class BoosterContentComponent {
       return acc + getCardPrice(item.card);
     }, 0).toFixed(2);
   }
-
-  protected readonly getCardName = getCardName;
-  protected readonly getCardPrice = getCardPrice;
 }
