@@ -1,6 +1,13 @@
 import express, { type Request, type Response } from 'express';
 import { getUuids, getCardsByUuids } from '../lib/repository/mtg-json';
-import { createSession, deleteCard, getCardsBySessionId, saveCard } from '../lib/repository/my-db';
+import {
+  cleanEmptySessions,
+  createSession,
+  deleteCard,
+  getCardsBySessionId,
+  getSessions,
+  saveCard,
+} from '../lib/repository/my-db';
 import bodyParser from 'body-parser';
 import { getCardFromMtgJson } from '../lib/mtg';
 /*
@@ -24,6 +31,15 @@ export function save(): express.Router {
       }
     });
     res.status(200).send(result);
+  });
+
+  app.get('/sessions', async (req: Request, res: Response) => {
+    res.status(200).send(getSessions());
+  });
+
+  app.delete('/sessions', async (req: Request, res: Response) => {
+    cleanEmptySessions();
+    res.status(204).send();
   });
 
   app.post('/session', bodyParser.json(), async (req: Request, res: Response) => {

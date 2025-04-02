@@ -45,4 +45,8 @@ export class ApiService {
   getSession(sessionId: string) {
     return this.http.get<HistoryItem[]>(`${this.baseUrl}/save/session/${sessionId}`);
   }
+
+  getSessions() {
+    return this.http.get<Session[]>(`${this.baseUrl}/save/sessions`);
+  }
 }

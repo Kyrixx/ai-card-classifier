@@ -48,3 +48,11 @@ POST {{base_url}}/update-prices
 Content-Type: application/json
 
 {}
+
+### Get sessions
+GET {{base_url}}/save/sessions
+Accept: application/json
+
+### Delete empty sessions
+DELETE {{base_url}}/save/sessions
+Accept: application/json

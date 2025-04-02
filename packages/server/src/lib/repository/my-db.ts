@@ -53,3 +53,17 @@ const getCardsBySessionIdQuery = myDb.prepare(`
 export function getCardsBySessionId(sessionId: string) {
   return getCardsBySessionIdQuery.all({ sessionId });
 }
+
+const getSessionsQuery = myDb.prepare(`
+  SELECT * FROM sessions
+`);
+export function getSessions() {
+  return getSessionsQuery.all();
+}
+
+const cleanEmptySessionsQuery = myDb.prepare(`
+  DELETE FROM sessions WHERE sessionId NOT IN (SELECT DISTINCT sessionId FROM cards)
+`);
+export function cleanEmptySessions() {
+  cleanEmptySessionsQuery.run();
+}
