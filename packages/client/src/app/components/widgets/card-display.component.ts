@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { NgClass, NgIf, UpperCasePipe } from '@angular/common';
+import { NgIf, UpperCasePipe } from '@angular/common';
 import { Loading } from '../../models/loading.enum';
 import { Card } from '../../models/scryfall';
 import { getCardImageUrl, getCardPrice } from '../../models/mtg-json';
@@ -8,7 +8,7 @@ import { getCardImageUrl, getCardPrice } from '../../models/mtg-json';
   standalone: true,
   selector: 'app-card-display',
   template: `
-    <section class="flex flex-col items-center min-h-auto">
+    <section *ngIf="enabled" class="flex flex-col items-center min-h-auto">
       <div *ngIf="!!card" class="relative">
         <img class="justify-center min-h-75" [src]="getCardImageUrl(card)" [width]="width"
              [height]="width*1.31"
@@ -47,6 +47,7 @@ import { getCardImageUrl, getCardPrice } from '../../models/mtg-json';
 export class CardDisplayComponent {
   @Input() card: Card | null = null;
   @Input() loadingState: Loading = Loading.Initial;
+  @Input() enabled = false;
 
   protected readonly width = 600;
   readonly LoadingLabels: Record<Loading, string> = {
