@@ -43,6 +43,7 @@ import { BoosterButtonItemComponent } from './booster-button-item.component';
         [items]="getCardForBooster(boosterId())"
         [boosterNumber]="boosterId()"
         (activatedItem)="onCardClick.emit($event)"
+        (deleteItem)="deleteItem.emit($event)"
       ></booster-content>
     </div>
   `,
