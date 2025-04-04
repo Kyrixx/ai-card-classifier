@@ -30,8 +30,7 @@ export class ApiService {
         sessionId: params.sessionId
       };
     });
-    // return this.http.post(`${this.baseUrl}/save/cards`, cards);
-    return(of({}))
+    return this.http.post<any[]>(`${this.baseUrl}/save/cards`, cards);
   }
 
   deleteCard(params: { set: string, collectorNumber: string, boosterId: number, sessionId: string, createdAt: number }) {
