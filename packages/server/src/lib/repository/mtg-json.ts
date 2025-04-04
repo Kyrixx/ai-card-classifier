@@ -55,6 +55,7 @@ const getCardFrenchQuery = mtgJsonDb.prepare(`
     SELECT * FROM cardForeignData WHERE uuid = :uuid AND language = 'French'
 `);
 export function getCard(params: { set: string, collectorNumber: string }) {
+  // console.log(`[mtg-json] ${params.set} ${params.collectorNumber}`);
   const card: any = getCardQuery.get(params);
   const identifiers: any = getCardIdentifiersQuery.get({ uuid: card.uuid });
   const french = getCardFrenchQuery.get({ uuid: card.uuid });

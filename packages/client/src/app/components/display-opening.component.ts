@@ -188,24 +188,11 @@ export class DisplayOpeningComponent implements OnInit {
 
   async loadSession() {
     this.loadingHistory.set(true);
-    this.history.set(JSON.parse(this.storage.get('history') ?? '[]').reduce((acc: HistoryItem[], h: HistoryItem) => {
-      return [
-        ...acc,
-        {
-          card: h.card,
-          date: h.date,
-          boosterId: h.boosterId,
-          isDoublon: this.isCardDoublon(h.card, acc),
-        },
-      ];
-    }, []));
-
-    this.currentHistoryItem.set(this.history().at(-1) ?? null);
-    this.boosterId.set(this.history().length > 0 ? this.history().at(-1)!.boosterId : 1);
     this.sessionId = this.storage.get('sessionId') ?? (await lastValueFrom(this.apiWebservice.createSession({ type: 'display_opening' }))).sessionId;
-    this.sessionId = '0bt2x95692dp';
     const savedHistory = await lastValueFrom(this.apiWebservice.getSession(this.sessionId));
     this.history.set(savedHistory);
+    this.currentHistoryItem.set(this.history().at(-1) ?? null);
+    this.boosterId.set(this.history().length > 0 ? this.history().at(-1)!.boosterId : 1);
     this.loadingHistory.set(false);
   }
 
@@ -221,7 +208,6 @@ export class DisplayOpeningComponent implements OnInit {
 
     this.websocket.on(this.WebSocketEvent[Loading.Requested], () => {
       this.webSocketState.set(Loading.Requested);
-      AudioService.beep();
     });
 
     this.websocket.on(this.WebSocketEvent[Loading.WaitingAI], () => {
@@ -255,8 +241,10 @@ export class DisplayOpeningComponent implements OnInit {
   }
 
   async detectCard() {
+    await AudioService.beep();
     let card = await this.processorService.triggerRecognition();
     const historyItem: HistoryItem = {
+      _id: -1,
       card,
       date: Date.now(),
       boosterId: this.boosterId(),
@@ -268,20 +256,29 @@ export class DisplayOpeningComponent implements OnInit {
       await AudioService.sparkles();
     }
     this.saveSession();
+    this.tts.speak(getFrenchCard(this.card())?.name ?? '');
   }
 
   nextBooster() {
     this.boosterId.set(this.boosterId() + 1);
   }
 
-  saveSession() {
-    this.storage.set('price', this.totalPrice().toString());
-    this.storage.saveObject('history', this.history());
+  async saveSession() {
     this.storage.set('sessionId', this.sessionId);
-    lastValueFrom(this.apiWebservice.saveCards({
+    const addedCards = await lastValueFrom(this.apiWebservice.saveCards({
       history: this.history(),
       sessionId: this.sessionId,
     }));
+    addedCards.forEach((addedCard) => {
+      this.history.update(history => {
+        const index = history.findIndex(h => h.date === addedCard.createdAt);
+        if (index === -1) {
+          return history;
+        }
+        history[index] = { ...history[index], _id: addedCard._id };
+        return history;
+      })
+    })
   }
 
   async resetSession() {
@@ -304,17 +301,12 @@ export class DisplayOpeningComponent implements OnInit {
     if (!item) {
       return;
     }
-    const removedCard = item.card;
     this.history.set(this.history().filter((h) => h.date !== item.date));
     this.currentHistoryItem.set(this.history().at(-1) ?? null);
     await lastValueFrom(this.apiWebservice.deleteCard({
-      set: removedCard.setCode,
-      collectorNumber: removedCard.number,
-      boosterId: item.boosterId,
-      sessionId: this.sessionId,
-      createdAt: item.date,
+      _id: item._id,
     }));
-    this.saveSession();
+    // this.saveSession();
   }
 
   readCard() {

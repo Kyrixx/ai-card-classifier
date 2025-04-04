@@ -23,17 +23,23 @@ export function setupUp() {
 }
 
 const saveCardQuery = myDb.prepare(`
-  INSERT INTO cards (uuid, createdAt, sessionId, boosterId) VALUES (:uuid, datetime(:createdAt/ 1000, 'unixepoch'), :sessionId, :boosterId)
+  INSERT INTO cards (uuid, createdAt, sessionId, boosterId) VALUES (:uuid, datetime(:createdAt, 'unixepoch'), :sessionId, :boosterId)
 `);
 export function saveCard(params: { uuid: string, sessionId: string, boosterId: number, createdAt: number }) {
-  saveCardQuery.run(params);
+  const statement = saveCardQuery.run({
+    ...params,
+    createdAt: params.createdAt / 1000,
+  });
+  return statement.lastInsertRowid;
 }
 
 const deleteCardQuery = myDb.prepare(`
-  DELETE FROM cards WHERE uuid = :uuid AND sessionId = :sessionId AND boosterId = :boosterId AND createdAt = datetime(:createdAt/ 1000, 'unixepoch')
+  DELETE FROM cards 
+  WHERE _id = :_id
+--          WHERE uuid = :uuid AND sessionId = :sessionId AND boosterId = :boosterId AND createdAt = datetime(:createdAt, 'unixepoch')
 `);
-export function deleteCard(params: { uuid: string, sessionId: string, boosterId: number, createdAt: number }) {
-  deleteCardQuery.run(params);
+export function deleteCard(params: { _id: number }) {
+  console.log(deleteCardQuery.run(params));
 }
 
 const createSessionQuery = myDb.prepare(`

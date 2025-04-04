@@ -33,7 +33,7 @@ export class ApiService {
     return this.http.post<any[]>(`${this.baseUrl}/save/cards`, cards);
   }
 
-  deleteCard(params: { set: string, collectorNumber: string, boosterId: number, sessionId: string, createdAt: number }) {
+  deleteCard(params: { _id: number }) {
     return this.http.delete(`${this.baseUrl}/save/card`, {body: params});
   }
 

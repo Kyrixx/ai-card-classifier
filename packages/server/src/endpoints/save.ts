@@ -10,12 +10,7 @@ import {
 } from '../lib/repository/my-db';
 import bodyParser from 'body-parser';
 import { getCardFromMtgJson } from '../lib/mtg';
-/*
 
-card: Card;
-  boosterId: number;
-  date: number;
- */
 export function save(): express.Router {
   const app = express.Router();
 
@@ -25,6 +20,7 @@ export function save(): express.Router {
     const result = cardsBySessionId.map((card: any) => {
       const c: any = cards.find((c: any) => c.uuid === card.uuid);
       return {
+        _id: card._id,
         card: getCardFromMtgJson(c.setCode, parseInt(c.number)),
         boosterId: card.boosterId,
         date: card.createdAt
@@ -72,35 +68,30 @@ export function save(): express.Router {
     }
 
     const addedCards: any = [];
+    let count = 0;
     for(const card of req.body) {
       const cardUuids = getUuids([{ set: card.set, collectorNumber: card.collectorNumber }]);
       for(const uuid of cardUuids) {
         try {
           const cardInfo = { uuid: uuid, sessionId: card.sessionId, boosterId: card.boosterId, createdAt: card.createdAt };
-          saveCard(cardInfo);
-          addedCards.push(cardInfo);
+          const addedId = saveCard(cardInfo);
+          addedCards.push({ ...cardInfo, _id: addedId });
         } catch (e) {
+          count++;
         }
       }
     }
 
+    console.log(`Saved ${addedCards.length} cards, ${count} already saved`);
     if(req.body.length > 0 && addedCards.length === 0) {
       res.status(409).send({ error: 'All cards already saved' });
       return;
     }
-    res.status(204).send(addedCards);
+    res.status(200).send(addedCards);
   })
 
   app.delete('/card', bodyParser.json(), async (req: Request, res: Response) => {
-    const cardUuids = getUuids([{ set: req.body.set, collectorNumber: req.body.collectorNumber }]);
-    for(const uuid of cardUuids) {
-      try {
-        deleteCard({ uuid: uuid, sessionId: req.body.sessionId, boosterId: req.body.boosterId, createdAt: req.body.createdAt });
-      } catch (e) {
-        res.status(409).send({ error: 'Card already saved' });
-        return;
-      }
-    }
+    deleteCard({ _id: req.body._id });
     res.status(204).send();
   })
 
