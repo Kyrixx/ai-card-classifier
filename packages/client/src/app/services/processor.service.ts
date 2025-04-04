@@ -24,7 +24,7 @@ export class ProcessorService {
       throw new Error('MediaRecorder is not initialized');
     }
     return new Promise((resolve) => {
-      mediaRecorder.start(1000);
+      mediaRecorder.start(300);
       mediaRecorder.ondataavailable = (event) => {
         mediaRecorder.stop();
         resolve(event.data);
@@ -44,10 +44,11 @@ export class ProcessorService {
     }
 
     try {
+      const body = await getRequestBody();
       return await lastValueFrom(
         this.http.post(
           `${window.location.protocol}//${window.location.hostname}:3100/record`,
-          await getRequestBody(),
+          body,
           { responseType: 'json' }
         )
       );
