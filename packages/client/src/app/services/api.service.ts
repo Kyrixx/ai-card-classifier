@@ -38,14 +38,14 @@ export class ApiService {
   }
 
   createSession(params: { type: string }) {
-    return this.http.post<Session>(`${this.baseUrl}/save/session`, params);
+    return this.http.post<Session>(`${this.baseUrl}/session`, params);
   }
 
   getSession(sessionId: string) {
-    return this.http.get<HistoryItem[]>(`${this.baseUrl}/save/session/${sessionId}`);
+    return this.http.get<HistoryItem[]>(`${this.baseUrl}/session/${sessionId}`);
   }
 
   getSessions() {
-    return this.http.get<Session[]>(`${this.baseUrl}/save/sessions`);
+    return this.http.get<Session[]>(`${this.baseUrl}/session`);
   }
 }

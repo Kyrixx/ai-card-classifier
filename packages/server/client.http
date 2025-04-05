@@ -32,7 +32,7 @@ Content-Type: application/json
 }
 
 ### POST sesion
-POST {{base_url}}/save/session
+POST {{base_url}}/session
 Content-Type: application/json
 
 {
@@ -40,7 +40,7 @@ Content-Type: application/json
 }
 
 ### Get session
-GET {{base_url}}/save/session/0bt2x95692dp
+GET {{base_url}}/session/3ynlio40xx
 Accept: application/json
 
 ### Update price version
@@ -50,9 +50,9 @@ Content-Type: application/json
 {}
 
 ### Get sessions
-GET {{base_url}}/save/sessions
+GET {{base_url}}/session
 Accept: application/json
 
 ### Delete empty sessions
-DELETE {{base_url}}/save/sessions
+DELETE {{base_url}}/session
 Accept: application/json
