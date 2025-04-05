@@ -39,6 +39,17 @@ export function root(): express.Router {
     res.send(card);
   });
 
+  app.post('/r', upload.single('file'), async (req: Request, res: Response) => {
+    const now = Date.now();
+    fs.writeFileSync(`./assets/video-${now}.webm`, (req as any).file.buffer);
+    io.emit('requested');
+    runWorker({ filename: `./assets/video-${now}.webm`}).then(() => {
+      res.status(201).send();
+    }).catch((error) => {
+      res.status(400).send(error);
+    })
+  })
+
   app.post('/update-prices', async (req: Request, res: Response) => {
     const currentVersion = getVersion() as string;
     let date = new Date(currentVersion);
