@@ -8,7 +8,7 @@ import { BoosterButtonItemComponent } from './booster-button-item.component';
   standalone: true,
   selector: 'app-booster-list',
   template: `
-    <div class="flex flex-col w-full max-h-[795px] overflow-y-auto">
+    <div class="flex flex-col w-full max-h-[795px]">
       <ul
         cdkListbox
         cdkListboxOrientation="horizontal"
@@ -21,7 +21,7 @@ import { BoosterButtonItemComponent } from './booster-button-item.component';
             booster-item
             flex
             grow-0
-            basis-1/5
+            basis-1/4
             rounded-md
             cursor-pointer
             m-2
@@ -39,7 +39,7 @@ import { BoosterButtonItemComponent } from './booster-button-item.component';
       </ul>
 
       <booster-content
-        class="mt-10"
+        class="mt-5"
         [items]="getCardForBooster(boosterId())"
         [boosterNumber]="boosterId()"
         (activatedItem)="onCardClick.emit($event)"

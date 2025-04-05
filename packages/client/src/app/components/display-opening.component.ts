@@ -134,6 +134,7 @@ import { ActivatedRoute } from '@angular/router';
 })
 export class DisplayOpeningComponent implements OnInit {
   activatedRoute = inject(ActivatedRoute);
+  websocket = inject(Socket);
   protected readonly Loading = Loading;
   protected stream: MediaStream | null = null;
   protected readonly width: number = 300;
@@ -167,7 +168,7 @@ export class DisplayOpeningComponent implements OnInit {
   });
   totalPrice = computed<number>(() => this.history().reduce((acc, h) => acc + getCardPrice(h.card), 0));
   webSocketState = signal<Loading>(Loading.Initial);
-  serverHealth = signal<boolean>(false);
+  serverHealth = signal<boolean>(this.websocket.connected);
 
   readonly WebSocketEvent: Record<Loading, string> = {
     [Loading.Initial]: '_',
@@ -182,7 +183,6 @@ export class DisplayOpeningComponent implements OnInit {
 
   constructor(
     private readonly processorService: ProcessorService,
-    private readonly websocket: Socket,
     private readonly storage: StorageService,
     private readonly tts: TtsService,
     private readonly apiWebservice: ApiService,

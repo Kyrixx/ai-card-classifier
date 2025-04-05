@@ -10,10 +10,7 @@ import { getCardPrice } from '../../models/mtg-json';
   template: `
     <div class="flex flex-col w-full items-center">
       <div class="flex">
-        Booster n°{{ boosterNumber() }}
-      </div>
-      <div class="flex">
-        {{ items().length }} cartes - {{ getBoosterPrice(items()) }}&nbsp;€
+        {{ boosterNumber() }} - {{ items().length }} cartes - {{ getBoosterPrice(items()) }}&nbsp;€
       </div>
     </div>
   `,

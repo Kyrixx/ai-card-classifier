@@ -17,7 +17,7 @@ import { getCardName, getCardPrice } from '../../models/mtg-json';
   ],
   standalone: true,
   template: `
-    <div class="flex flex-col min-w-full border border-gray-700 rounded-md">
+    <div class="flex flex-col min-w-full border border-gray-700 rounded-md overflow-y-auto max-h-[600px]">
       <button
         class="flex flex-col justify-start w-full px-2"
       >
