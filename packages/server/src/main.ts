@@ -16,13 +16,15 @@ app.use('/', webServer());
 let port = process.env.WEBSERVER_PORT ?? "3100";
 const useHttps = parseBoolean(process.env.USE_HTTPS);
 
+/**
 const server = useHttps
   ? https.createServer({
       key: fs.readFileSync(process.env.KEY_PATH as string),
       cert: fs.readFileSync(process.env.CERT_PATH as string),
     }, app)
   : app;
+*/
 
-server.listen(parseInt(port), '0.0.0.0', () => {
+app.listen(parseInt(port), '0.0.0.0', () => {
   console.log(`Server is running on ${useHttps ? "https" : "http"}://localhost:${port}`);
 });
