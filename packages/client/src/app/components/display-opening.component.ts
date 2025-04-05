@@ -228,6 +228,7 @@ export class DisplayOpeningComponent implements OnInit {
 
     this.websocket.on(this.WebSocketEvent[Loading.Error], () => {
       this.webSocketState.set(Loading.Error);
+      this.currentHistoryItem.set(null);
     });
   }
 

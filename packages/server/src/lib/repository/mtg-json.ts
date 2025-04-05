@@ -57,6 +57,9 @@ const getCardFrenchQuery = mtgJsonDb.prepare(`
 export function getCard(params: { set: string, collectorNumber: string }) {
   // console.log(`[mtg-json] ${params.set} ${params.collectorNumber}`);
   const card: any = getCardQuery.get(params);
+  if(!card || !card.uuid) {
+    throw new Error('Card not found');
+  }
   const identifiers: any = getCardIdentifiersQuery.get({ uuid: card.uuid });
   const french = getCardFrenchQuery.get({ uuid: card.uuid });
   return {

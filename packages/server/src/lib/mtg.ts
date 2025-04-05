@@ -72,12 +72,16 @@ export function assertCardIsUsable(card: any): boolean {
 }
 
 export function getCardFromMtgJson(set: string, collector_number: number) {
-  const card = getCard({ set, collectorNumber: collector_number.toString() }) as any;
-  const prices = getPrices(card.uuid);
+  try {
+    const card = getCard({ set, collectorNumber: collector_number.toString() }) as any;
+    const prices = getPrices(card.uuid);
 
-  return {
-    ...card,
-    imageUris: { en: buildScryfallImageUrl(card.identifiers.scryfallId), fr: buildGathererImageUrl(card.foreignData[0].multiverseId) },
-    prices
-  };
+    return {
+      ...card,
+      imageUris: { en: buildScryfallImageUrl(card.identifiers.scryfallId), fr: buildGathererImageUrl(card.foreignData[0].multiverseId) },
+      prices
+    };
+  } catch (e) {
+    return null;
+  }
 }
