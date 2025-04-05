@@ -1,12 +1,13 @@
 import express, { type Request, type Response } from 'express';
 import multer from 'multer';
 import { io } from '../lib/websocket';
-import { getFrameFromVideoBuffer } from '../lib/video';
+import { saveVideoAndGetFrame } from '../lib/video';
 import { getCardInfoFromAI } from '../lib/ai';
 import { assertCardIsUsable, getCardFromMtgJson } from '../lib/mtg';
 import { getVersion } from '../lib/repository/mtg-prices';
 import axios from 'axios';
 import * as fs from 'fs';
+import { runWorker } from '../lib/thread';
 
 export function root(): express.Router {
   const app = express.Router();
@@ -19,7 +20,7 @@ export function root(): express.Router {
 
   app.post('/record', upload.single('file'), async (req: Request, res: Response) => {
     io.emit('requested');
-    const frameFileName: string = await getFrameFromVideoBuffer((req as any).file.buffer);
+    const frameFileName: string = await saveVideoAndGetFrame((req as any).file.buffer);
     const info = await getCardInfoFromAI(frameFileName);
     const json = JSON.parse(info);
     if (json.error) {
@@ -55,8 +56,6 @@ export function root(): express.Router {
       console.log('Prices already up to date');
       res.status(304).send('Prices already up to date');
     }
-
-    //
   });
 
   return app;
