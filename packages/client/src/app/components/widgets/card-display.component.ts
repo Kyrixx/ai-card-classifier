@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, input, Input } from '@angular/core';
 import { NgIf, UpperCasePipe } from '@angular/common';
 import { Loading } from '../../models/loading.enum';
 import { Card } from '../../models/scryfall';
@@ -13,13 +13,13 @@ import { getCardImageUrl, getCardPrice } from '../../models/mtg-json';
         <img class="justify-center min-h-75" [src]="getCardImageUrl(card)" [width]="width"
              [height]="width*1.31"
              alt="Card" />
-        <div *ngIf="loadingState !== Loading.Finished" class="loading-text absolute z-1 text-white italic bg-blue-700 w-full text-center">
-          {{ LoadingLabels[loadingState] }}
+        <div *ngIf="loadingState() !== Loading.Finished" class="loading-text absolute z-1 text-white italic bg-blue-700 w-full text-center">
+          {{ LoadingLabels[loadingState()] }}
         </div>
       </div>
       <div *ngIf="card === null"
            class="w-75 h-98 rounded-xl bg-blue-700 flex items-center justify-center border-1 border-gray-400">
-        {{ LoadingLabels[loadingState] }}
+        {{ LoadingLabels[loadingState()] }}
       </div>
       <div *ngIf="card" class="flex flex-row justify-evenly min-w-full">
         <p>Set : {{ card.setCode | uppercase }}</p>
@@ -46,7 +46,7 @@ import { getCardImageUrl, getCardPrice } from '../../models/mtg-json';
 })
 export class CardDisplayComponent {
   @Input() card: Card | null = null;
-  @Input() loadingState: Loading = Loading.Initial;
+  loadingState = input<Loading>(Loading.Initial);
   @Input() enabled = false;
 
   protected readonly width = 600;
