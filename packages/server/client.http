@@ -40,7 +40,7 @@ Content-Type: application/json
 }
 
 ### Get session
-GET {{base_url}}/session/3ynlio40xx
+GET {{base_url}}/session/0bt2x95692dp
 Accept: application/json
 
 ### Update price version

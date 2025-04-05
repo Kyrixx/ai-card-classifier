@@ -47,7 +47,7 @@ export class ProcessorService {
       const body = await getRequestBody();
       return await lastValueFrom(
         this.http.post(
-          `${window.location.protocol}//${window.location.hostname}:3100/record`,
+          `${window.location.protocol}//${window.location.hostname}:3100/r`,
           body,
           { responseType: 'json' }
         )

@@ -60,7 +60,14 @@ export function getCardsBySessionId(sessionId: string) {
 }
 
 const getSessionsQuery = myDb.prepare(`
-  SELECT * FROM sessions
+    SELECT
+        sessions.sessionId,
+        sessions.type,
+        COUNT(*) as card_count,
+        COUNT(DISTINCT cards.boosterId) as booster_count
+    FROM sessions
+             INNER JOIN main.cards cards on sessions.sessionId = cards.sessionId
+    GROUP BY cards.sessionId
 `);
 export function getSessions() {
   return getSessionsQuery.all();

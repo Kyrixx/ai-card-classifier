@@ -1,4 +1,4 @@
-import { Component, computed, HostListener, OnInit, signal } from '@angular/core';
+import { Component, computed, HostListener, inject, OnInit, signal } from '@angular/core';
 import { ProcessorService } from '../services/processor.service';
 import { StorageService } from '../services/storage.service';
 import { Socket } from 'ngx-socket-io';
@@ -14,6 +14,7 @@ import { lastValueFrom } from 'rxjs';
 import { ApiService } from '../services/api.service';
 import { getCardPrice, getFrenchCard } from '../models/mtg-json';
 import { LoadingSpinnerComponent } from './widgets/loading-spinner.component';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-layout',
@@ -25,7 +26,12 @@ import { LoadingSpinnerComponent } from './widgets/loading-spinner.component';
   template: `
     <div class="flex flex-col align-center max-w-sm border-2 border-gray-400 rounded-xl p-2">
       <div class="flex flex-row items-center justify-center mb-4">
-        <p>Total : {{ totalPrice().toFixed(2) }} € | Booster : {{ boosterId() }} | Session : {{ sessionId }}</p>
+        <div
+          class="p-2 mx-2 rounded-[50%]"
+          [class.bg-red-700]="!this.serverHealth()"
+          [class.bg-green-700]="this.serverHealth()"
+        ></div>
+        <p>Total : {{ totalPrice().toFixed(2) }} €</p>
       </div>
 
       <video id="feedback" autoplay class="flex" [srcObject]="stream"></video>
@@ -127,6 +133,7 @@ import { LoadingSpinnerComponent } from './widgets/loading-spinner.component';
   `,
 })
 export class DisplayOpeningComponent implements OnInit {
+  activatedRoute = inject(ActivatedRoute);
   protected readonly Loading = Loading;
   protected stream: MediaStream | null = null;
   protected readonly width: number = 300;
@@ -160,6 +167,7 @@ export class DisplayOpeningComponent implements OnInit {
   });
   totalPrice = computed<number>(() => this.history().reduce((acc, h) => acc + getCardPrice(h.card), 0));
   webSocketState = signal<Loading>(Loading.Initial);
+  serverHealth = signal<boolean>(false);
 
   readonly WebSocketEvent: Record<Loading, string> = {
     [Loading.Initial]: '_',
@@ -183,13 +191,16 @@ export class DisplayOpeningComponent implements OnInit {
 
   async ngOnInit() {
     this.listenWebsocketEvents();
+    this.sessionId = this.activatedRoute.snapshot.params['sessionId'] ?? '';
     await this.loadSession();
     this.stream = await ProcessorService.triggerVideo();
   }
 
   async loadSession() {
     this.loadingHistory.set(true);
-    this.sessionId = this.storage.get('sessionId') ?? (await lastValueFrom(this.apiWebservice.createSession({ type: 'display_opening' }))).sessionId;
+    if(!this.sessionId.length) {
+      this.sessionId = this.storage.get('sessionId') ?? (await lastValueFrom(this.apiWebservice.createSession({ type: 'display_opening' }))).sessionId;
+    }
     const savedHistory = await lastValueFrom(this.apiWebservice.getSession(this.sessionId));
     this.history.set(savedHistory);
     this.currentHistoryItem.set(this.history().at(-1) ?? null);
@@ -198,6 +209,15 @@ export class DisplayOpeningComponent implements OnInit {
   }
 
   listenWebsocketEvents() {
+    this.websocket.on('disconnect', () => {
+      this.serverHealth.set(false);
+    });
+    this.websocket.on('connect', () => {
+      this.serverHealth.set(true);
+    });
+
+    this.websocket.active
+
     this.websocket.on(this.WebSocketEvent[Loading.Clicked], () => {
       if(this.webSocketState() !== Loading.Finished) {
         return;

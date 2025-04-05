@@ -1,7 +1,8 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { MatTableModule } from '@angular/material/table';
 import { Session } from '../models/api/session';
 import { ApiService } from '../services/api.service';
+import { Router } from '@angular/router';
 
 @Component({
   standalone: true,
@@ -19,17 +20,37 @@ import { ApiService } from '../services/api.service';
         <td mat-cell *matCellDef="let element"> {{ element.type }}</td>
       </ng-container>
 
+      <ng-container matColumnDef="name">
+        <th mat-header-cell *matHeaderCellDef> Nom</th>
+        <td mat-cell *matCellDef="let element"> {{ element.name }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="card_count">
+        <th mat-header-cell *matHeaderCellDef> Nb Cartes</th>
+        <td mat-cell *matCellDef="let element"> {{ element.card_count }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="booster_count">
+        <th mat-header-cell *matHeaderCellDef> Nb Boosters</th>
+        <td mat-cell *matCellDef="let element"> {{ element.booster_count }}</td>
+      </ng-container>
+
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-      <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+      <tr
+        class="hover:bg-blue-100! cursor-pointer"
+        mat-row
+        *matRowDef="let row; columns: displayedColumns;"
+        (click)="goToSession(row)"
+      ></tr>
     </table>
   `,
-
   imports: [
     MatTableModule,
   ],
 })
 export class SessionsComponent implements OnInit {
-  protected readonly displayedColumns: string[] = ['sessionId', 'type'];
+  protected router = inject(Router);
+  protected readonly displayedColumns: string[] = ['sessionId', 'name', 'type', 'card_count', 'booster_count'];
   sessions = signal<Session[]>([]);
 
   constructor(private readonly apiService: ApiService) {}
@@ -38,5 +59,9 @@ export class SessionsComponent implements OnInit {
     this.apiService.getSessions().subscribe((sessions) => {
       this.sessions.set(sessions);
     });
+  }
+
+  async goToSession(session: Session) {
+    await this.router.navigate(['/session', session.sessionId]);
   }
 }
