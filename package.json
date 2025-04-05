@@ -4,7 +4,8 @@
     "packages/*"
   ],
   "scripts": {
-    "start": "turbo run start"
+    "start": "turbo run launch",
+    "launch": "turbo run launch"
   },
   "dependencies": {
     "turbo": "^2.4.4"
