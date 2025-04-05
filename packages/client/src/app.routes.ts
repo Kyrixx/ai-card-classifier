@@ -4,7 +4,7 @@ import { SessionsComponent } from './app/components/sessions.component';
 import { DeckComponent } from './app/components/deck.component';
 
 export const routes: Routes = [
-  { path: '', redirectTo: 'layout', pathMatch: 'full' },
+  { path: '', redirectTo: 'sessions', pathMatch: 'full' },
   { path: 'layout', component: DisplayOpeningComponent },
   { path: 'session/:sessionId', component: DisplayOpeningComponent },
   { path: 'sessions', component: SessionsComponent },
