@@ -36,10 +36,9 @@ export function saveCard(params: { uuid: string, sessionId: string, boosterId: n
 const deleteCardQuery = myDb.prepare(`
   DELETE FROM cards 
   WHERE _id = :_id
---          WHERE uuid = :uuid AND sessionId = :sessionId AND boosterId = :boosterId AND createdAt = datetime(:createdAt, 'unixepoch')
 `);
 export function deleteCard(params: { _id: number }) {
-  console.log(deleteCardQuery.run(params));
+  deleteCardQuery.run(params);
 }
 
 const createSessionQuery = myDb.prepare(`
