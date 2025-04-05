@@ -1,6 +1,7 @@
 import { parseBoolean } from './utils';
 import socketIO from 'socket.io';
 import * as fs from 'fs';
+import { isMainThread, parentPort } from 'worker_threads';
 
 const USE_HTTPS = parseBoolean(process.env.USE_HTTPS);
 const scheme = USE_HTTPS ? require('https') : require('http');
@@ -26,6 +27,14 @@ export function startWebsocketConnection() {
   } else {
     io.listen(parseInt(port));
     console.log(`Websocket listening at http://localhost:${port}`);
+  }
+}
+
+export const emit = (eventName: string, ...messages: any[]) => {
+  if(isMainThread) {
+    io.emit(eventName, ...messages);
+  } else {
+    parentPort?.postMessage({ update: eventName, ...messages });
   }
 }
 

@@ -1,6 +1,6 @@
 import { isMainThread, Worker } from 'worker_threads';
 import * as path from 'path';
-import { io } from './websocket';
+import { emit, io } from './websocket';
 
 let activeThreads = 0;
 
@@ -16,26 +16,22 @@ export async function runWorker(workerData: { filename: string }) {
     log('Worker started');
     worker.on('message', (message) => {
       if(message.update) {
-        if(isMainThread) {
-          io.emit(message.update);
-          log(message.update);
-        }
+        emit(message.update);
+        log(message.update);
 
         if(message.update === 'finished') {
-          log('status : finished');
           resolve(message.card);
         }
 
         if(message.error) {
-          log('status : error', message.error);
-          io.emit('error');
+          emit('error', message.error);
           reject(message.error);
         }
       }
     });
 
     worker.on('error', () => {
-      io.emit('error');
+      emit('error');
       reject();
     });
 

@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI, ResponseSchema, SchemaType } from '@google/generative-ai';
 import * as fs from 'fs';
-import { io } from './websocket';
+import { emit } from './websocket';
 import { fetchSets } from './sets';
 
 function fileToGenerativePart(path: string, mimeType: string) {
@@ -75,10 +75,10 @@ export async function getCardInfoFromAI(filename: string): Promise<string> {
     Then, error should be false.
     `;
 
-  io.emit('waiting_ai');
+  emit('waiting_ai');
   const generatedResponse = await model.generateContent([prompt, asset]);
   const card = generatedResponse.response.text();
-  io.emit('ai_finished');
+  emit('ai_finished');
   return card;
 }
 
