@@ -91,6 +91,7 @@ import { LoadingSpinnerComponent } from './widgets/loading-spinner.component';
       <app-card-display
         [card]="card()"
         [loadingState]="webSocketState()"
+        [enabled]="true"
       ></app-card-display>
     </div>
 
