@@ -2,14 +2,14 @@ import { isMainThread, Worker } from 'worker_threads';
 import * as path from 'path';
 import { io } from './websocket';
 
+let activeThreads = 0;
+
 export async function runWorker(workerData: { filename: string }) {
   return new Promise((resolve, reject) => {
     const worker = new Worker(path.resolve(__dirname, '..', 'worker.js'), {
-      workerData: {
-        path: './lib/thread-worker.ts',
-        ...workerData,
-      }
+      workerData: { path: './lib/thread-worker.ts', ...workerData }
     });
+    activeThreads++;
     const threadId = worker.threadId;
     const log = (...messages: any[]) => console.log(`[${threadId}]`, ...messages);
 
@@ -40,6 +40,7 @@ export async function runWorker(workerData: { filename: string }) {
     });
 
     worker.on('exit', (code) => {
+      activeThreads--;
       if (code !== 0){
         reject(new Error(`Worker stopped with exit code ${code}`));
         return;
