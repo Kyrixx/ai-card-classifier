@@ -6,6 +6,7 @@ import { isMainThread, parentPort } from 'worker_threads';
 const USE_HTTPS = parseBoolean(process.env.USE_HTTPS);
 const scheme = USE_HTTPS ? require('https') : require('http');
 
+/**
 const server = scheme.createServer(
   USE_HTTPS ?
   {
@@ -14,20 +15,14 @@ const server = scheme.createServer(
   } :
   {}
 );
+ */
 
-
-const io = new socketIO.Server(server, { cors: { origin: '*' } });
+const io = new socketIO.Server({}, { cors: { origin: '*' } });
 
 export function startWebsocketConnection() {
   const port = process.env.WEBSOCKET_PORT ?? '3000';
-  if (USE_HTTPS) {
-    server.listen(port, '0.0.0.0', () => {
-      console.log(`Websocket listening at https://localhost:${port}`);
-    });
-  } else {
-    io.listen(parseInt(port));
-    console.log(`Websocket listening at http://localhost:${port}`);
-  }
+  io.listen(parseInt(port));
+  console.log(`Websocket listening at http://localhost:${port}`);
 }
 
 export const emit = (eventName: string, ...messages: any[]) => {

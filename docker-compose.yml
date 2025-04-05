@@ -7,18 +7,29 @@ services:
       - ./packages/server/.env
     volumes:
       - ./packages/server/certs:/usr/src/app/certs
-    ports:
-      - "3100:3100"
-      - "3000:3000"
+    networks:
+      - caddy
 
   client:
     build:
       context: ./packages/client
       dockerfile: Dockerfile
+    networks:
+      - caddy
+
+  caddy:
+    image: caddy:latest
+    volumes:
+      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile
+    networks:
+      - caddy
     ports:
-      - "8081:8081"
+      - "80:80"
+      - "443:443"
 
   redis:
     image: redis:alpine
     ports:
       - "6379:6379"
+networks:
+  caddy:
