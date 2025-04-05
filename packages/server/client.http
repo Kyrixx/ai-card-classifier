@@ -56,3 +56,7 @@ Accept: application/json
 ### Delete empty sessions
 DELETE {{base_url}}/session
 Accept: application/json
+
+### Get thread count
+GET {{base_url}}/thread-count
+Accept: application/json

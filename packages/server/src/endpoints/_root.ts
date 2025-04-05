@@ -7,7 +7,7 @@ import { assertCardIsUsable, getCardFromMtgJson } from '../lib/mtg';
 import { getVersion } from '../lib/repository/mtg-prices';
 import axios from 'axios';
 import * as fs from 'fs';
-import { runWorker } from '../lib/thread';
+import { activeThreads, runWorker } from '../lib/thread';
 
 export function root(): express.Router {
   const app = express.Router();
@@ -43,8 +43,8 @@ export function root(): express.Router {
     const now = Date.now();
     fs.writeFileSync(`./assets/video-${now}.webm`, (req as any).file.buffer);
     emit('requested');
-    runWorker({ filename: `./assets/video-${now}.webm`}).then(() => {
-      res.status(201).send();
+    runWorker({ filename: `./assets/video-${now}.webm`}).then((card) => {
+      res.status(201).send(card);
     }).catch((error) => {
       res.status(400).send(error);
     })
@@ -68,6 +68,10 @@ export function root(): express.Router {
       res.status(304).send('Prices already up to date');
     }
   });
+
+  app.get('/thread-count', (req: Request, res: Response) => {
+    res.send({ count: activeThreads });
+  })
 
   return app;
 

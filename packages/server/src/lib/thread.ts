@@ -1,8 +1,8 @@
-import { isMainThread, Worker } from 'worker_threads';
+import { Worker } from 'worker_threads';
 import * as path from 'path';
-import { emit, io } from './websocket';
+import { emit } from './websocket';
 
-let activeThreads = 0;
+export let activeThreads = 0;
 
 export async function runWorker(workerData: { filename: string }) {
   return new Promise((resolve, reject) => {
