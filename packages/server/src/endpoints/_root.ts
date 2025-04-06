@@ -61,7 +61,7 @@ export function root(): express.Router {
           console.log(Math.round((progressEvent.progress ?? 0) * 100) + '%');
         }
       })).data;
-      fs.writeFileSync('./src/assets/price.sqlite', file);
+      fs.writeFileSync('./src/assets/prices.sqlite', file);
       res.send('ok');
     } else {
       console.log('Prices already up to date');

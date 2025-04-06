@@ -88,7 +88,7 @@ async function checkCardPricesDatabase() {
     bar.stop();
     fs.writeFileSync(process.env.CARD_PRICES_DB_PATH ?? './src/assets/prices.sqlite', file);
 
-    console.log('\n\n ✅Prices database downloaded from https://mtgjson.com/api/v5/AllPricesToday.sqlite at src/assets/price.sqlite.');
+    console.log('\n\n ✅Prices database downloaded from https://mtgjson.com/api/v5/AllPricesToday.sqlite at src/assets/prices.sqlite.');
   }
 }
 
