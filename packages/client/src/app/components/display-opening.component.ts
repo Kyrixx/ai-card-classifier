@@ -316,6 +316,7 @@ export class DisplayOpeningComponent implements OnInit {
   }
 
   handleItemClicked(event: any) {
+    this.currentHistoryItem.set(null);
     this.currentHistoryItem.set(event);
   }
 

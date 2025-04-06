@@ -8,7 +8,7 @@ import { BoosterButtonItemComponent } from './booster-button-item.component';
   standalone: true,
   selector: 'app-booster-list',
   template: `
-    <div class="flex flex-col w-full max-h-[795px]">
+    <div class="flex flex-col w-full max-h-full">
       <ul
         cdkListbox
         cdkListboxOrientation="horizontal"
