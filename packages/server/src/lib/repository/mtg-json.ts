@@ -1,5 +1,5 @@
 import { DatabaseSync } from 'node:sqlite';
-const mtgJsonDb = new DatabaseSync('./src/assets/cards.sqlite');
+const mtgJsonDb = new DatabaseSync(process.env.CARDS_DB_PATH as string);
 
 const getCardCountForSetQuery = mtgJsonDb.prepare(`
   select COUNT(distinct cardIdentifiers.scryfallOracleId) as count, cards.rarity from 'cards'

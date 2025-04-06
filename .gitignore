@@ -9,6 +9,7 @@ packages/server/assets/*.jpg
 .idea/dataSources.xml
 certs/**
 **/*.sqlite
+!packages/server/src/assets/empty_collection.sqlite
 **/*.sqlite-shm
 **/*.sqlite-wal
 video.webm

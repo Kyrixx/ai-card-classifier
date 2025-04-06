@@ -1,5 +1,5 @@
 import { DatabaseSync } from 'node:sqlite';
-const db = new DatabaseSync('./src/assets/prices.sqlite');
+const db = new DatabaseSync(process.env.CARD_PRICES_DB_PATH as string);
 
 const getVersionQuery = db.prepare(`
   SELECT DISTINCT date FROM cardPrices

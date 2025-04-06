@@ -7,6 +7,7 @@
     "dev": "node -r dotenv/config dist/main.js",
     "launch": "NODE_OPTIONS='--no-warnings' ts-node -r dotenv/config src/main.ts",
     "start": "NODE_OPTIONS='--no-warnings' ts-node -r dotenv/config src/main.ts --watch",
+    "check": "ts-node -r dotenv/config src/setup.ts",
     "build": "tsc -p tsconfig.json"
   },
   "dependencies": {
@@ -23,6 +24,7 @@
   "devDependencies": {
     "@types/express": "^5.0.0",
     "@types/ffmpeg": "^1.0.7",
+    "cli-progress": "^3.12.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.7.3"
   }

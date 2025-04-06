@@ -1,5 +1,5 @@
 import { DatabaseSync } from 'node:sqlite';
-const myDb = new DatabaseSync('./src/assets/db.sqlite');
+const myDb = new DatabaseSync(process.env.COLLECTION_DB_PATH as string);
 
 export function setupUp() {
   myDb.exec(`
