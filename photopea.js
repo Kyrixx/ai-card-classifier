@@ -227,3 +227,5 @@ function lines() {
 
 
 load();
+//ram();
+//lines();
