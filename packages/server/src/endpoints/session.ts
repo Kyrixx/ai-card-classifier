@@ -32,7 +32,7 @@ export function session(): express.Router {
     res.status(204).send();
   });
 
-  app.post('/session', bodyParser.json(), async (req: Request, res: Response) => {
+  app.post('/', bodyParser.json(), async (req: Request, res: Response) => {
     if (!req.body.type) {
       res.status(400).send({ error: 'Expected session type' });
       return;

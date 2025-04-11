@@ -8,7 +8,7 @@ import { RouterOutlet } from '@angular/router';
   ],
   standalone: true,
   template: `
-    <div class="bg-gray-600 text-white">
+    <div>
       <router-outlet></router-outlet>
     </div>
   `,

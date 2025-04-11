@@ -3,6 +3,8 @@ import { MatTableModule } from '@angular/material/table';
 import { Session } from '../models/api/session';
 import { ApiService } from '../services/api.service';
 import { Router } from '@angular/router';
+import { MatButton } from '@angular/material/button';
+import { lastValueFrom } from 'rxjs';
 
 @Component({
   standalone: true,
@@ -43,13 +45,17 @@ import { Router } from '@angular/router';
         (click)="goToSession(row)"
       ></tr>
     </table>
+
+    <button mat-flat-button (click)="addSession()">Add Session</button>
   `,
   imports: [
     MatTableModule,
+    MatButton,
   ],
 })
 export class SessionsComponent implements OnInit {
   protected router = inject(Router);
+  protected apiWebservice = inject(ApiService)
   protected readonly displayedColumns: string[] = ['sessionId', 'name', 'type', 'card_count', 'booster_count'];
   sessions = signal<Session[]>([]);
 
@@ -63,5 +69,10 @@ export class SessionsComponent implements OnInit {
 
   async goToSession(session: Session) {
     await this.router.navigate(['/session', session.sessionId]);
+  }
+
+  async addSession() {
+    const newSessionId = (await lastValueFrom(this.apiWebservice.createSession({ type: 'display_opening' }))).sessionId
+    await this.router.navigate(['/session', newSessionId]);
   }
 }

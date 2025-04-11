@@ -14,7 +14,9 @@ import { lastValueFrom } from 'rxjs';
 import { ApiService } from '../services/api.service';
 import { getCardPrice, getFrenchCard } from '../models/mtg-json';
 import { LoadingSpinnerComponent } from './widgets/loading-spinner.component';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
+import { MatIcon } from '@angular/material/icon';
+import { NgIf } from '@angular/common';
 
 @Component({
   selector: 'app-layout',
@@ -22,16 +24,22 @@ import { ActivatedRoute } from '@angular/router';
     BoosterListComponent,
     CardDisplayComponent,
     LoadingSpinnerComponent,
+    MatIcon,
+    NgIf,
   ],
   template: `
     <div class="flex flex-col align-center max-w-sm border-2 border-gray-400 rounded-xl p-2">
-      <div class="flex flex-row items-center justify-center mb-4">
-        <div
-          class="p-2 mx-2 rounded-[50%]"
-          [class.bg-red-700]="!this.serverHealth()"
-          [class.bg-green-700]="this.serverHealth()"
-        ></div>
-        <p>Total : {{ totalPrice().toFixed(2) }} €</p>
+      <div class="flex flex-row items-center justify-between mb-4">
+        <div class="flex justify-center cursor-pointer" (click)="goToSessionList()"><mat-icon>arrow_back</mat-icon></div>
+        <div class="flex flex-row items-center justify-center">
+          <div *ngIf="!this.serverHealth()">Server off</div>
+          <div
+            class="p-2 mx-2 rounded-[50%]"
+            [class.bg-red-700]="!this.serverHealth()"
+            [class.bg-green-700]="this.serverHealth()"
+          ></div>
+          <p>Total : {{ totalPrice().toFixed(2) }} €</p>
+        </div>
       </div>
 
       <video id="feedback" autoplay class="flex" [srcObject]="stream"></video>
@@ -102,6 +110,9 @@ import { ActivatedRoute } from '@angular/router';
     </div>
 
   `,
+  host: {
+    class: 'bg-gray-600 text-white'
+  },
   styles: `
     :host {
       @apply flex;
@@ -134,6 +145,7 @@ import { ActivatedRoute } from '@angular/router';
 })
 export class DisplayOpeningComponent implements OnInit {
   activatedRoute = inject(ActivatedRoute);
+  router = inject(Router);
   websocket = inject(Socket);
   protected readonly Loading = Loading;
   protected stream: MediaStream | null = null;
@@ -353,5 +365,9 @@ export class DisplayOpeningComponent implements OnInit {
 
   isCardDoublon(card: Card, history: HistoryItem[]): boolean {
     return history.some((h) => getFrenchCard(h.card)?.name === getFrenchCard(card)?.name);
+  }
+
+  async goToSessionList() {
+    await this.router.navigate(['/sessions']);
   }
 }
