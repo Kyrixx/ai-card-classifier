@@ -1,4 +1,4 @@
-import { Component, input, Input, signal } from '@angular/core';
+import { Component, effect, input, signal } from '@angular/core';
 import { NgIf, UpperCasePipe } from '@angular/common';
 import { Loading } from '../../models/loading.enum';
 import { Card } from '../../models/scryfall';
@@ -10,21 +10,26 @@ import { MatIcon } from '@angular/material/icon';
   selector: 'app-card-display',
   template: `
     <section *ngIf="enabled" class="flex flex-col items-center min-h-auto">
-      <div *ngIf="!!card" class="relative">
-        <img class="justify-center min-h-75" [src]="getCardImageUrl(card, currentLanguage())" [width]="width"
+      <div *ngIf="!!card()" class="relative">
+        <img class="justify-center min-h-75"
+             [class.blur-xs]="!imageLoaded()"
+             [src]="getCardImageUrl(card(), currentLanguage())"
+             [width]="width"
              [height]="width*1.31"
-             alt="Card" />
+             alt="Card"
+            (load)="imageLoaded.set(true)"
+        />
         <div *ngIf="loadingState() !== Loading.Finished" class="loading-text absolute z-1 text-white italic bg-blue-700 w-full text-center">
           {{ LoadingLabels[loadingState()] }}
         </div>
       </div>
-      <div *ngIf="card === null"
+      <div *ngIf="card() === null"
            class="w-75 h-98 rounded-xl bg-blue-700 flex items-center justify-center border-1 border-gray-400">
         {{ LoadingLabels[loadingState()] }}
       </div>
-      <div *ngIf="card" class="flex flex-row justify-evenly min-w-full">
-        <p>Set : {{ card.setCode | uppercase }}</p>
-        <p class="align-center">Prix : {{ getCardPrice(card).toFixed(2) }}€</p>
+      <div *ngIf="card()" class="flex flex-row justify-evenly min-w-full">
+        <p>Set : {{ card()?.setCode | uppercase }}</p>
+        <p class="align-center">Prix : {{ getCardPrice(card()).toFixed(2) }}€</p>
         <div
           class="flex justify-center cursor-pointer hover:underline"
           (click)="changeLanguage()"
@@ -54,10 +59,11 @@ import { MatIcon } from '@angular/material/icon';
   `,
 })
 export class CardDisplayComponent {
-  @Input() card: Card | null = null;
+  card = input<Card | null>(null);
   loadingState = input<Loading>(Loading.Initial);
-  @Input() enabled = false;
+  enabled = input(false);
   currentLanguage = signal<string>('fr');
+  imageLoaded = signal(false);
 
   protected readonly width = 600;
   readonly LoadingLabels: Record<Loading, string> = {
@@ -74,6 +80,18 @@ export class CardDisplayComponent {
   protected readonly Loading = Loading;
   protected readonly getCardPrice = getCardPrice;
   protected readonly getCardImageUrl = getCardImageUrl;
+
+  constructor() {
+    effect(() => {
+      if (this.card()) {
+        this.imageLoaded.set(false);
+      }
+
+      if(this.currentLanguage()) {
+        this.imageLoaded.set(false);
+      }
+    });
+  }
   changeLanguage() {
     this.currentLanguage.set(this.currentLanguage() === 'fr' ? 'en' : 'fr');
   }
