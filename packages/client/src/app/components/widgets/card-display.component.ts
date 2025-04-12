@@ -1,7 +1,7 @@
 import { Component, effect, input, signal } from '@angular/core';
 import { NgIf, UpperCasePipe } from '@angular/common';
 import { Loading } from '../../models/loading.enum';
-import { Card } from '../../models/scryfall';
+import { Card } from '../../models/mtg-json';
 import { getCardImageUrl, getCardPrice } from '../../models/mtg-json';
 import { MatIcon } from '@angular/material/icon';
 

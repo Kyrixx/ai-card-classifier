@@ -7,7 +7,7 @@ import { RarityEnum } from '../models/rarity.enum';
 import { BoosterListComponent } from './widgets/booster-list.component';
 import { Loading } from '../models/loading.enum';
 import { CardDisplayComponent } from './widgets/card-display.component';
-import { Card } from '../models/scryfall';
+import type { Card } from '../models/mtg-json';
 import { TtsService } from '../services/tts.service';
 import { AudioService } from '../services/audio.service';
 import { lastValueFrom } from 'rxjs';

@@ -1,4 +1,4 @@
-import { Card } from './scryfall';
+import { Card } from './mtg-json';
 
 export interface HistoryItem {
   _id: number;

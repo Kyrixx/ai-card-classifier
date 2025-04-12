@@ -1,5 +1,3 @@
-import { Imageuris } from './scryfall';
-
 export type BoosterConfig = {
   boosters: BoosterPack[];
   boostersTotalWeight: number;
@@ -620,8 +618,9 @@ export type StandardAtomicFile = { meta: Meta; data: Record<string, CardAtomic>;
 export type VintageFile = { meta: Meta; data: Record<string, CardSet>; };
 export type VintageAtomicFile = { meta: Meta; data: Record<string, CardAtomic>; };
 
-export const getFrenchCard = (card?: CardDeck | null) => card?.foreignData?.find((foreignData) => foreignData.language === 'French');
-export const getCardPrice = (card?: CardDeck | null) => {
+export type Card = CardDeck;
+export const getFrenchCard = (card?: Card | null) => card?.foreignData?.find((foreignData) => foreignData.language === 'French');
+export const getCardPrice = (card?: Card | null) => {
   const filterByCurrency = (prices: Price[], currency: string) =>
     prices
       ?.filter((price) => price.currency === currency)
@@ -634,11 +633,11 @@ export const getCardPrice = (card?: CardDeck | null) => {
   const prices = card.prices;
   return filterByCurrency(prices, 'EUR') || filterByCurrency(prices, 'USD') || 0.0;
 }
-export const getCardImageUrl = (card?: CardDeck | null, forceLanguage: string = 'fr') => {
+export const getCardImageUrl = (card?: Card | null, forceLanguage: string = 'fr') => {
   // @ts-ignore
   return card?.imageUris?.[forceLanguage] || card?.imageUris?.fr || card?.imageUris?.en || card?.['image_uris'].fr || card?.['image_uris'].en || '';
 }
-export const getCardName = (card?: CardDeck | null) => {
+export const getCardName = (card?: Card | null) => {
   const frenchCard = getFrenchCard(card);
   return frenchCard?.name || card?.name || '';
 }
