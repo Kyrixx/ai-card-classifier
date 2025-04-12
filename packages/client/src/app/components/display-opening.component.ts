@@ -30,7 +30,9 @@ import { NgIf } from '@angular/common';
   template: `
     <div class="flex flex-col align-center max-w-sm border-2 border-gray-400 rounded-xl p-2">
       <div class="flex flex-row items-center justify-between mb-4">
-        <div class="flex justify-center cursor-pointer" (click)="goToSessionList()"><mat-icon>arrow_back</mat-icon></div>
+        <div class="flex justify-center cursor-pointer" (click)="goToSessionList()">
+          <mat-icon>arrow_back</mat-icon>
+        </div>
         <div class="flex flex-row items-center justify-center">
           <div *ngIf="!this.serverHealth()">Server off</div>
           <div
@@ -67,19 +69,39 @@ import { NgIf } from '@angular/common';
       </div>
 
       <div class="flex justify-evenly mt-4 flex-wrap">
-        <button class="bg-blue-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1 flex-1" (click)="detectCard()">Ask
+        <button class="bg-blue-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1 flex-1"
+                (click)="detectCard()">Ask
           AI
         </button>
-        <button class="bg-blue-800 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1 flex-1" (click)="resetSession()">
+        <button class="bg-blue-800 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1 flex-1"
+                (click)="resetSession()">
           Reset
           Session
         </button>
-        <button class="bg-green-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1 flex-1" (click)="nextBooster()">
+        <button class="bg-green-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1 flex-1"
+                (click)="nextBooster()">
           Next booster
         </button>
-        <button class="bg-orange-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1 flex-1" (click)="readCard()">Read
+        <button class="bg-orange-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1 flex-1"
+                (click)="readCard()">Read
           Card
         </button>
+      </div>
+
+      <div class="flex flex-col items-center justify-center mt-4">
+        <div>Stats</div>
+        <div class="flex">
+          <div class="px-4 py-2 text-center flex items-center justify-center flex-1 whitespace-nowrap">Cards per booster
+            :
+          </div>
+          <div class="px-4 py-2 text-center flex-1">2</div>
+        </div>
+        <div class="flex">
+          <div class="px-4 py-2 text-center flex items-center justify-center flex-1 whitespace-nowrap">Price per booster
+            :
+          </div>
+          <div class="px-4 py-2 text-center flex-1">5€</div>
+        </div>
       </div>
     </div>
 
@@ -111,7 +133,7 @@ import { NgIf } from '@angular/common';
 
   `,
   host: {
-    class: 'bg-gray-600 text-white'
+    class: 'bg-gray-600 text-white',
   },
   styles: `
     :host {
@@ -156,14 +178,14 @@ export class DisplayOpeningComponent implements OnInit {
   loadingHistory = signal<boolean>(false);
   currentHistoryItem = signal<HistoryItem | null>(null);
   collectionCompletion = computed(() => {
-    const history = this.history()
+    const history = this.history();
     return {
       total: [...new Set(history.map(h => h.card.uuid))].length,
       [RarityEnum.Common]: [...new Set(history.filter(h => h.card.rarity === RarityEnum.Common).map(h => h.card.uuid))].length,
       [RarityEnum.Uncommon]: [...new Set(history.filter(h => h.card.rarity === RarityEnum.Uncommon).map(h => h.card.uuid))].length,
       [RarityEnum.Rare]: [...new Set(history.filter(h => h.card.rarity === RarityEnum.Rare).map(h => h.card.uuid))].length,
       [RarityEnum.Mythic]: [...new Set(history.filter(h => h.card.rarity === RarityEnum.Mythic).map(h => h.card.uuid))].length,
-    }
+    };
   });
   boosterId = signal<number>(1);
   card = computed<Card | null>(() => this.currentHistoryItem()?.card ?? null);
@@ -214,6 +236,7 @@ export class DisplayOpeningComponent implements OnInit {
     this.history.set(savedHistory);
     this.currentHistoryItem.set(this.history().at(-1) ?? null);
     this.boosterId.set(this.history().length > 0 ? this.history().at(-1)!.boosterId : 1);
+    this.updateDoublonInHistory();
     this.loadingHistory.set(false);
   }
 
@@ -225,10 +248,8 @@ export class DisplayOpeningComponent implements OnInit {
       this.serverHealth.set(true);
     });
 
-    this.websocket.active
-
     this.websocket.on(this.WebSocketEvent[Loading.Clicked], () => {
-      if(this.webSocketState() !== Loading.Finished) {
+      if (this.webSocketState() !== Loading.Finished) {
         return;
       }
 
@@ -283,7 +304,7 @@ export class DisplayOpeningComponent implements OnInit {
     };
     this.history.set([...this.history(), historyItem]);
     this.currentHistoryItem.set(historyItem);
-    if(getCardPrice(this.card()) >= 10) {
+    if (getCardPrice(this.card()) >= 10) {
       await AudioService.sparkles();
     }
     this.saveSession();
@@ -308,8 +329,8 @@ export class DisplayOpeningComponent implements OnInit {
         }
         history[index] = { ...history[index], _id: addedCard._id };
         return history;
-      })
-    })
+      });
+    });
   }
 
   async resetSession() {
@@ -337,7 +358,7 @@ export class DisplayOpeningComponent implements OnInit {
     await lastValueFrom(this.apiWebservice.deleteCard({
       _id: item._id,
     }));
-    // this.saveSession();
+    this.updateDoublonInHistory()
   }
 
   readCard() {
@@ -355,12 +376,29 @@ export class DisplayOpeningComponent implements OnInit {
       .replace(/\//g, ' ')
       .replace(/\\n/gi, '. ');
     this.tts.speak(
-      `${text}.`
+      `${text}.`,
     );
   }
 
   isCardDoublon(card: Card, history: HistoryItem[]): boolean {
     return history.some((h) => getFrenchCard(h.card)?.name === getFrenchCard(card)?.name);
+  }
+
+  updateDoublonInHistory() {
+    this.history.update(history =>
+      history
+        .map(h => ({
+          ...h,
+          isDoublon: false,
+        }))
+        .reduce((acc: HistoryItem[], h: HistoryItem) => {
+          if (this.isCardDoublon(h.card, acc)) {
+            h.isDoublon = true;
+          }
+          acc.push(h);
+          return acc;
+        }, []),
+    );
   }
 
   async goToSessionList() {
