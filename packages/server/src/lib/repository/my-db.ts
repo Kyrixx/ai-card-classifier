@@ -42,12 +42,12 @@ export function deleteCard(params: { _id: number }) {
 }
 
 const createSessionQuery = myDb.prepare(`
-  INSERT INTO sessions (sessionId, type) VALUES (:sessionId, :type)
+  INSERT INTO sessions (sessionId, name, type) VALUES (:sessionId, :name, :type)
 `);
 const getSessionsByIdQuery = myDb.prepare(`
   SELECT * FROM sessions WHERE sessionId = :id
 `);
-export function createSession(params: { sessionId: string, type: string }) {
+export function createSession(params: { sessionId: string, type: string, name: string }) {
   createSessionQuery.run(params);
   return getSessionsByIdQuery.get({ id: params.sessionId });
 }
@@ -63,6 +63,7 @@ const getSessionsQuery = myDb.prepare(`
     SELECT
         sessions.sessionId,
         sessions.type,
+        sessions.name,
         COUNT(*) as card_count,
         COUNT(DISTINCT cards.boosterId) as booster_count
     FROM sessions
@@ -78,4 +79,12 @@ const cleanEmptySessionsQuery = myDb.prepare(`
 `);
 export function cleanEmptySessions() {
   cleanEmptySessionsQuery.run();
+}
+
+const updateSessionQuery = myDb.prepare(`
+  UPDATE sessions SET type = :type, name = :name WHERE sessionId = :sessionId
+`);
+export function updateSession(params: { sessionId: string, type: string, name: string }) {
+  updateSessionQuery.run(params);
+  return getSessionsByIdQuery.get({ id: params.sessionId });
 }

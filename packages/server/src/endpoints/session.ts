@@ -1,5 +1,11 @@
 import express, { type Request, type Response } from 'express';
-import { cleanEmptySessions, createSession, getCardsBySessionId, getSessions } from '../lib/repository/my-db';
+import {
+  cleanEmptySessions,
+  createSession,
+  getCardsBySessionId,
+  getSessions,
+  updateSession,
+} from '../lib/repository/my-db';
 import { getCardsByUuids } from '../lib/repository/mtg-json';
 import { getCardFromMtgJson } from '../lib/mtg';
 import bodyParser from 'body-parser';
@@ -37,7 +43,16 @@ export function session(): express.Router {
       res.status(400).send({ error: 'Expected session type' });
       return;
     }
-    const session = createSession({ sessionId: Math.random().toString(36).substring(2, 15), type: req.body.type });
+    const session = createSession({ sessionId: Math.random().toString(36).substring(2, 15), type: req.body.type, name: req.body.name ?? '' });
+    res.status(200).send(session);
+  });
+
+  app.patch('/:sessionId', bodyParser.json(), async (req: Request, res: Response) => {
+    if (!req.params.sessionId) {
+      res.status(400).send({ error: 'Expected session Id' });
+      return;
+    }
+    const session = updateSession({ sessionId: req.params.sessionId, type: req.body.type, name: req.body.name ?? '' });
     res.status(200).send(session);
   });
   return app;

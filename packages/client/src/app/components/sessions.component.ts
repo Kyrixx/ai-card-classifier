@@ -5,6 +5,9 @@ import { ApiService } from '../services/api.service';
 import { Router } from '@angular/router';
 import { MatButton } from '@angular/material/button';
 import { lastValueFrom } from 'rxjs';
+import { MatDialog } from '@angular/material/dialog';
+import { SessionDialogComponent, SessionDialogModeEnum } from './widgets/session-dialog.component';
+import { MatIcon } from '@angular/material/icon';
 
 @Component({
   standalone: true,
@@ -14,27 +17,32 @@ import { lastValueFrom } from 'rxjs';
 
       <ng-container matColumnDef="sessionId">
         <th mat-header-cell *matHeaderCellDef> Id</th>
-        <td mat-cell *matCellDef="let element"> {{ element.sessionId }}</td>
+        <td mat-cell *matCellDef="let element" (click)="goToSession(element)"> {{ element.sessionId }}</td>
       </ng-container>
 
       <ng-container matColumnDef="type">
         <th mat-header-cell *matHeaderCellDef> Type</th>
-        <td mat-cell *matCellDef="let element"> {{ element.type }}</td>
+        <td mat-cell *matCellDef="let element" (click)="goToSession(element)"> {{ element.type }}</td>
       </ng-container>
 
       <ng-container matColumnDef="name">
         <th mat-header-cell *matHeaderCellDef> Nom</th>
-        <td mat-cell *matCellDef="let element"> {{ element.name }}</td>
+        <td mat-cell *matCellDef="let element" (click)="goToSession(element)"> {{ element.name }}</td>
       </ng-container>
 
       <ng-container matColumnDef="card_count">
         <th mat-header-cell *matHeaderCellDef> Nb Cartes</th>
-        <td mat-cell *matCellDef="let element"> {{ element.card_count }}</td>
+        <td mat-cell *matCellDef="let element" (click)="goToSession(element)"> {{ element.card_count }}</td>
       </ng-container>
 
       <ng-container matColumnDef="booster_count">
         <th mat-header-cell *matHeaderCellDef> Nb Boosters</th>
-        <td mat-cell *matCellDef="let element"> {{ element.booster_count }}</td>
+        <td mat-cell *matCellDef="let element" (click)="goToSession(element)"> {{ element.booster_count }}</td>
+      </ng-container>
+
+      <ng-container matColumnDef="edit">
+        <th mat-header-cell *matHeaderCellDef>Edit</th>
+        <td mat-cell *matCellDef="let element" (click)="openDialog(element)"><mat-icon>edit</mat-icon></td>
       </ng-container>
 
       <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
@@ -42,21 +50,23 @@ import { lastValueFrom } from 'rxjs';
         class="hover:bg-blue-100! cursor-pointer"
         mat-row
         *matRowDef="let row; columns: displayedColumns;"
-        (click)="goToSession(row)"
       ></tr>
     </table>
 
-    <button mat-flat-button (click)="addSession()">Add Session</button>
+    <button mat-flat-button (click)="openDialog()">New Session</button>
   `,
   imports: [
     MatTableModule,
     MatButton,
+    MatIcon,
   ],
 })
 export class SessionsComponent implements OnInit {
   protected router = inject(Router);
-  protected apiWebservice = inject(ApiService)
-  protected readonly displayedColumns: string[] = ['sessionId', 'name', 'type', 'card_count', 'booster_count'];
+  protected apiWebservice = inject(ApiService);
+  readonly dialog = inject(MatDialog);
+  protected readonly displayedColumns: string[] = ['sessionId', 'name', 'type', 'card_count', 'booster_count', 'edit'];
+
   sessions = signal<Session[]>([]);
 
   constructor(private readonly apiService: ApiService) {}
@@ -71,8 +81,28 @@ export class SessionsComponent implements OnInit {
     await this.router.navigate(['/session', session.sessionId]);
   }
 
-  async addSession() {
-    const newSessionId = (await lastValueFrom(this.apiWebservice.createSession({ type: 'display_opening' }))).sessionId
-    await this.router.navigate(['/session', newSessionId]);
+  openDialog(session?: Session) {
+    console.log(session)
+    const dialogRef = this.dialog.open(SessionDialogComponent, {
+      data: {
+        mode: !!session ? SessionDialogModeEnum.Edit : SessionDialogModeEnum.Add,
+        session
+      }
+    });
+
+    dialogRef.afterClosed().subscribe((result) => {
+      if (!!result) {
+        if (session) {
+          this.apiWebservice.updateSession({ sessionId: session.sessionId, name: result.sessionName, type: result.sessionType }).subscribe(() => {
+            this.sessions.update((sessions) => sessions.map((s) => s.sessionId === session.sessionId ? { ...s, name: result.sessionName, type: result.sessionType } : s));
+          });
+        } else {
+          this.apiWebservice.createSession({ name: result.sessionName, type: result.sessionType }).subscribe((session) => {
+            this.sessions.update((sessions) => [...sessions, session]);
+            this.goToSession(session);
+          });
+        }
+      }
+    });
   }
 }

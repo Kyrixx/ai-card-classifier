@@ -210,9 +210,6 @@ export class DisplayOpeningComponent implements OnInit {
 
   async loadSession() {
     this.loadingHistory.set(true);
-    if(!this.sessionId.length) {
-      this.sessionId = this.storage.get('sessionId') ?? (await lastValueFrom(this.apiWebservice.createSession({ type: 'display_opening' }))).sessionId;
-    }
     const savedHistory = await lastValueFrom(this.apiWebservice.getSession(this.sessionId));
     this.history.set(savedHistory);
     this.currentHistoryItem.set(this.history().at(-1) ?? null);
@@ -324,7 +321,6 @@ export class DisplayOpeningComponent implements OnInit {
     this.history.set([]);
     this.boosterId.set(1);
     this.webSocketState.set(Loading.Initial);
-    this.sessionId = (await lastValueFrom(this.apiWebservice.createSession({ type: 'display_opening' }))).sessionId;
   }
 
   handleItemClicked(event: any) {

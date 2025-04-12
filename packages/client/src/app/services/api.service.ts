@@ -37,8 +37,12 @@ export class ApiService {
     return this.http.delete(`${this.baseUrl}/save/card`, {body: params});
   }
 
-  createSession(params: { type: string }) {
+  createSession(params: { name: string, type: string }) {
     return this.http.post<Session>(`${this.baseUrl}/session`, params);
+  }
+
+  updateSession(params: { sessionId: string, name: string, type: string }) {
+    return this.http.patch<Session>(`${this.baseUrl}/session/${params.sessionId}`, params);
   }
 
   getSession(sessionId: string) {
