@@ -30,8 +30,9 @@ import { NgIf } from '@angular/common';
   template: `
     <div class="flex flex-col align-center max-w-sm border-2 border-gray-400 rounded-xl p-2">
       <div class="flex flex-row items-center justify-between mb-4">
-        <div class="flex justify-center cursor-pointer" (click)="goToSessionList()">
-          <mat-icon>arrow_back</mat-icon>
+        <div class="flex justify-center cursor-pointer">
+          <mat-icon (click)="goToSessionList()">arrow_back</mat-icon>
+          <mat-icon>settings</mat-icon>
         </div>
         <div class="flex flex-row items-center justify-center">
           <div *ngIf="!this.serverHealth()">Server off</div>
@@ -86,21 +87,31 @@ import { NgIf } from '@angular/common';
                 (click)="readCard()">Read
           Card
         </button>
+        <button class="bg-amber-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1 flex-1"
+                (click)="copyToClipboard(card())">
+          Copy to Clipboard
+        </button>
       </div>
 
       <div class="flex flex-col items-center justify-center mt-4">
         <div>Stats</div>
         <div class="flex">
+          <div class="px-4 py-2 text-center flex items-center justify-center flex-1 whitespace-nowrap">Unique cards
+            :
+          </div>
+          <div class="px-4 py-2 text-center flex-1">{{ collectionCompletion().total }}</div>
+        </div>
+        <div class="flex">
           <div class="px-4 py-2 text-center flex items-center justify-center flex-1 whitespace-nowrap">Cards per booster
             :
           </div>
-          <div class="px-4 py-2 text-center flex-1">2</div>
+          <div class="px-4 py-2 text-center flex-1">{{ cardsPerBooster }}</div>
         </div>
         <div class="flex">
           <div class="px-4 py-2 text-center flex items-center justify-center flex-1 whitespace-nowrap">Price per booster
             :
           </div>
-          <div class="px-4 py-2 text-center flex-1">5€</div>
+          <div class="px-4 py-2 text-center flex-1">{{ pricePerBooster }}€</div>
         </div>
       </div>
     </div>
@@ -173,6 +184,8 @@ export class DisplayOpeningComponent implements OnInit {
   protected stream: MediaStream | null = null;
   protected readonly width: number = 300;
   protected sessionId: string = '';
+  protected readonly cardsPerBooster: number = 14;
+  protected readonly pricePerBooster: number = 5;
 
   history = signal<HistoryItem[]>([]);
   loadingHistory = signal<boolean>(false);
@@ -295,20 +308,27 @@ export class DisplayOpeningComponent implements OnInit {
   async detectCard() {
     await AudioService.beep();
     let card = await this.processorService.triggerRecognition();
+    let isDoublon = this.isCardDoublon(card, this.history());
     const historyItem: HistoryItem = {
       _id: -1,
       card,
       date: Date.now(),
       boosterId: this.boosterId(),
-      isDoublon: this.isCardDoublon(card, this.history()),
+      isDoublon,
     };
     this.history.set([...this.history(), historyItem]);
     this.currentHistoryItem.set(historyItem);
     if (getCardPrice(this.card()) >= 10) {
       await AudioService.sparkles();
     }
-    this.saveSession();
-    this.tts.speak(getFrenchCard(this.card())?.name ?? '');
+    if(!isDoublon) {
+      // this.tts.speak(getFrenchCard(this.card())?.name ?? '');
+      this.tts.speak(this.card()?.name ?? '');
+    }
+    if (this.history().filter(h => h.boosterId === this.boosterId()).length >= this.cardsPerBooster) {
+      this.nextBooster();
+    }
+    await this.saveSession();
   }
 
   nextBooster() {
@@ -381,7 +401,7 @@ export class DisplayOpeningComponent implements OnInit {
   }
 
   isCardDoublon(card: Card, history: HistoryItem[]): boolean {
-    return history.some((h) => getFrenchCard(h.card)?.name === getFrenchCard(card)?.name);
+    return history.some((h) => h.card?.name === card?.name);
   }
 
   updateDoublonInHistory() {
@@ -403,5 +423,16 @@ export class DisplayOpeningComponent implements OnInit {
 
   async goToSessionList() {
     await this.router.navigate(['/sessions']);
+  }
+
+  copyToClipboard(card: Card | null) {
+    if (!card) {
+      return;
+    }
+    navigator.clipboard.writeText(`[[${card.name}]] (${getCardPrice(card).toFixed(2)}€)`).then(() => {
+      console.log('Text copied to clipboard');
+    }).catch((err) => {
+      console.error('Error copying text: ', err);
+    });
   }
 }
