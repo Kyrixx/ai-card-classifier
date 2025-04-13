@@ -298,20 +298,23 @@ export class DisplayOpeningComponent implements OnInit {
 
   @HostListener('window:keydown', ['$event'])
   async handleKeyDown(event: KeyboardEvent) {
-    if (!!event && event.key !== 'Enter') {
+    const handledKeys = ['Enter', '+'];
+    if (!!event && !handledKeys.includes(event.key)) {
       return;
     }
+
     event.preventDefault();
-    await this.detectCard();
+    await this.detectCard(event.key === '+');
   }
 
-  async detectCard() {
+  async detectCard(foil: boolean = false) {
     await AudioService.beep();
     let card = await this.processorService.triggerRecognition();
     let isDoublon = this.isCardDoublon(card, this.history());
     const historyItem: HistoryItem = {
       _id: -1,
       card,
+      foil,
       date: Date.now(),
       boosterId: this.boosterId(),
       isDoublon,
@@ -321,7 +324,7 @@ export class DisplayOpeningComponent implements OnInit {
     if (getCardPrice(this.card()) >= 10) {
       await AudioService.sparkles();
     }
-    if(!isDoublon) {
+    if (!isDoublon) {
       // this.tts.speak(getFrenchCard(this.card())?.name ?? '');
       this.tts.speak(this.card()?.name ?? '');
     }
@@ -343,12 +346,12 @@ export class DisplayOpeningComponent implements OnInit {
     }));
     addedCards.forEach((addedCard) => {
       this.history.update(history => {
-        const index = history.findIndex(h => h.date === addedCard.createdAt);
-        if (index === -1) {
-          return history;
+        const updatedHistory = [...history];
+        const index = updatedHistory.findIndex(h => h.date === addedCard.createdAt);
+        if (index !== -1) {
+          updatedHistory[index]._id = addedCard._id;
         }
-        history[index] = { ...history[index], _id: addedCard._id };
-        return history;
+        return updatedHistory;
       });
     });
   }
@@ -378,11 +381,11 @@ export class DisplayOpeningComponent implements OnInit {
     await lastValueFrom(this.apiWebservice.deleteCard({
       _id: item._id,
     }));
-    this.updateDoublonInHistory()
+    this.updateDoublonInHistory();
   }
 
   readCard() {
-    const textToRead = getFrenchCard(this.card())?.text ?? '';
+    const textToRead = this.card()?.text ?? '';
     let text = textToRead
       .replace(/\{T\}/g, 'Engagez cette carte')
       .replace(/\{Q\}/g, 'Dégagez cette carte')
@@ -407,16 +410,12 @@ export class DisplayOpeningComponent implements OnInit {
   updateDoublonInHistory() {
     this.history.update(history =>
       history
-        .map(h => ({
-          ...h,
-          isDoublon: false,
-        }))
+        .map(h => ({ ...h, isDoublon: false }))
         .reduce((acc: HistoryItem[], h: HistoryItem) => {
-          if (this.isCardDoublon(h.card, acc)) {
-            h.isDoublon = true;
-          }
-          acc.push(h);
-          return acc;
+          return [
+            ...acc,
+            { ...h, isDoublon: this.isCardDoublon(h.card, acc) },
+          ];
         }, []),
     );
   }

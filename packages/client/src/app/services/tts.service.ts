@@ -11,12 +11,12 @@ export class TtsService {
     this.synth = window.speechSynthesis;
     this.utterThis = new SpeechSynthesisUtterance();
     this.utterThis.lang = 'fr-FR';
-    this.utterThis.voice = this.synth.getVoices().find((voice) => voice.voiceURI === 'Marie')!;
   }
 
-  speak(text: string) {
+  speak(text: string, lang: string = 'fr-FR') {
     this.utterThis.text = text;
-    console.log(text);
+    this.utterThis.voice = window.speechSynthesis.getVoices()
+      .filter((voice) => voice.lang === lang && voice.voiceURI.match(/^Google/))[0];
     this.synth.speak(this.utterThis);
   }
 }
