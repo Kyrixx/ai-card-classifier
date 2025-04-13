@@ -78,7 +78,7 @@ export function getCardFromMtgJson(set: string, collector_number: number) {
 
     return {
       ...card,
-      imageUris: { en: buildScryfallImageUrl(card.identifiers.scryfallId), fr: buildGathererImageUrl(card.foreignData[0].multiverseId) },
+      imageUris: { en: buildScryfallImageUrl(card?.identifiers?.scryfallId ?? ''), fr: buildGathererImageUrl(card?.foreignData?.[0]?.multiverseId ?? '') },
       prices
     };
   } catch (e) {
