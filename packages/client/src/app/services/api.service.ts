@@ -9,7 +9,7 @@ import { of } from 'rxjs';
   providedIn: 'root'
 })
 export class ApiService {
-  private readonly baseUrl: string = `${window.location.protocol}//${window.location.hostname}:3100`;
+  private readonly baseUrl: string = `${window.location.protocol}//${window.location.hostname}/api`;
   constructor(private readonly http: HttpClient) { }
 
   getCardCountForSet(set: string) {
