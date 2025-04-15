@@ -88,3 +88,24 @@ export function updateSession(params: { sessionId: string, type: string, name: s
   updateSessionQuery.run(params);
   return getSessionsByIdQuery.get({ id: params.sessionId });
 }
+
+const getAllCardsQuery = myDb.prepare(`
+    SELECT DISTINCT(uuid) FROM cards
+`);
+export function getAllCards() {
+  return getAllCardsQuery.all();
+}
+
+const updateCardQuery = myDb.prepare(`
+    UPDATE cards SET setCode = :setCode, number = :number WHERE uuid = :uuid
+`);
+export function updateCard(params: { setCode: string, number: number, uuid: string }) {
+  updateCardQuery.run(params);
+}
+
+const getCardBySetCodeQuery = myDb.prepare(`
+    SELECT DISTINCT(uuid), setCode, number FROM cards WHERE setCode = :setCode ORDER BY number
+`);
+export function getCardBySetCode(setCode: string) {
+  return getCardBySetCodeQuery.all({ setCode });
+}

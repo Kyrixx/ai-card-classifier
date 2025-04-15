@@ -55,7 +55,6 @@ const getCardFrenchQuery = mtgJsonDb.prepare(`
     SELECT * FROM cardForeignData WHERE uuid = :uuid AND language = 'French'
 `);
 export function getCard(params: { set: string, collectorNumber: string }) {
-  // console.log(`[mtg-json] ${params.set} ${params.collectorNumber}`);
   const card: any = getCardQuery.get(params);
   if(!card || !card.uuid) {
     throw new Error('Card not found');
@@ -67,4 +66,39 @@ export function getCard(params: { set: string, collectorNumber: string }) {
     identifiers: identifiers,
     foreignData: [french],
   };
+}
+
+const getUniqueCardsForSetQuery = mtgJsonDb.prepare(`
+    select distinct cardIdentifiers.scryfallOracleId, cards.setCode, cards.number, cards.uuid
+    from 'cards'
+             INNER JOIN cardIdentifiers ON cards.uuid = cardIdentifiers.uuid
+    WHERE cards.setCode = :set
+      AND cardIdentifiers.scryfallOracleId IS NOT NULL
+`);
+const getScryfallOracleIdQuery = mtgJsonDb.prepare(`
+    SELECT scryfallOracleId
+    FROM cardIdentifiers
+    WHERE uuid = :uuid
+`);
+const getByScryfallOracleIdQuery = mtgJsonDb.prepare(`
+  SELECT uuid FROM cardIdentifiers WHERE scryfallOracleId = :scryfallOracleId
+`);
+export function getMissingCards(actualCards: { set: string, collectorNumber: string }[]) {
+  const actualOracleIds = actualCards.map((card) => {
+    const cardData = getCard(card);
+    return cardData.identifiers.scryfallOracleId;
+  });
+  const uniqueCardsForSet = getUniqueCardsForSetQuery.all({ set: actualCards[0].set });
+  const missingCards = uniqueCardsForSet.filter((card: any) => {
+    const oracleId = getScryfallOracleIdQuery.get({ uuid: card.uuid }) as any;
+    return !actualOracleIds.includes(oracleId.scryfallOracleId);
+  });
+  const missingCardsWithUuids = missingCards.map((card: any) => {
+    const scryfallOracleId = getScryfallOracleIdQuery.get({ uuid: card.uuid }) as any;
+    return {
+      ...card,
+      uuid: (getByScryfallOracleIdQuery.get({ scryfallOracleId: scryfallOracleId.scryfallOracleId }) as any).uuid
+    };
+  });
+  return missingCards;
 }

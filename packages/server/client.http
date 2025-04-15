@@ -1,6 +1,6 @@
 @base_url = https://localhost:3100
 ### GET Card Count
-GET {{base_url}}/set/DFT/card-count
+GET {{base_url}}/set/TDM/card-count
 Accept: application/json
 
 ### GET Scryfall Sets
@@ -60,3 +60,18 @@ Accept: application/json
 ### Get thread count
 GET {{base_url}}/thread-count
 Accept: application/json
+
+### fix collection
+PATCH {{base_url}}/collection/fix
+Content-Type: application/json
+
+{}
+
+### collection price
+GET {{base_url}}/collection/prices
+
+### collection by set
+GET {{base_url}}/collection/by-set?setCode=TDM
+
+### missing in collection by set
+GET {{base_url}}/collection/missing?setCode=TDM
