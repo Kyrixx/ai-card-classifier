@@ -127,7 +127,7 @@ export class BoosterContentComponent {
     let match;
 
     while ((match = regex.exec(computedInput)) !== null) {
-      manaValues.push(match[1]);
+      manaValues.push(match[1].replace('/', '').toLowerCase());
     }
 
     return manaValues;
