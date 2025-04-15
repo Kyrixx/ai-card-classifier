@@ -20,8 +20,8 @@ export class StorageService {
     this.set(key, JSON.stringify(value));
   }
 
-  getSession(): Record<string, number> {
-    return JSON.parse(this.get('cardCounts') || 'null');
+  getObject(key: string) {
+    return JSON.parse(this.get(key) || 'null');
   }
 
   resetSession() {

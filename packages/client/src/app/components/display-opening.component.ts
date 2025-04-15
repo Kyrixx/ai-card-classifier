@@ -12,11 +12,14 @@ import { TtsService } from '../services/tts.service';
 import { AudioService } from '../services/audio.service';
 import { lastValueFrom } from 'rxjs';
 import { ApiService } from '../services/api.service';
-import { getCardPrice, getFrenchCard } from '../models/mtg-json';
+import { getCardPrice } from '../models/mtg-json';
 import { LoadingSpinnerComponent } from './widgets/loading-spinner.component';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatIcon } from '@angular/material/icon';
 import { NgIf } from '@angular/common';
+import { MatDialog } from '@angular/material/dialog';
+import { DisplayOpeningConfigDialogComponent } from './widgets/display-opening-config-dialog.component';
+import { DisplayOpeningConfigInterface } from '../models/config';
 
 @Component({
   selector: 'app-layout',
@@ -32,7 +35,7 @@ import { NgIf } from '@angular/common';
       <div class="flex flex-row items-center justify-between mb-4">
         <div class="flex justify-center cursor-pointer">
           <mat-icon (click)="goToSessionList()">arrow_back</mat-icon>
-          <mat-icon>settings</mat-icon>
+          <mat-icon (click)="openSettings()">settings</mat-icon>
         </div>
         <div class="flex flex-row items-center justify-center">
           <div *ngIf="!this.serverHealth()">Server off</div>
@@ -101,18 +104,6 @@ import { NgIf } from '@angular/common';
           </div>
           <div class="px-4 py-2 text-center flex-1">{{ collectionCompletion().total }}</div>
         </div>
-        <div class="flex">
-          <div class="px-4 py-2 text-center flex items-center justify-center flex-1 whitespace-nowrap">Cards per booster
-            :
-          </div>
-          <div class="px-4 py-2 text-center flex-1">{{ cardsPerBooster }}</div>
-        </div>
-        <div class="flex">
-          <div class="px-4 py-2 text-center flex items-center justify-center flex-1 whitespace-nowrap">Price per booster
-            :
-          </div>
-          <div class="px-4 py-2 text-center flex-1">{{ pricePerBooster }}€</div>
-        </div>
       </div>
     </div>
 
@@ -139,6 +130,7 @@ import { NgIf } from '@angular/common';
         [card]="card()"
         [loadingState]="webSocketState()"
         [enabled]="true"
+        [currentLanguage]="config.language"
       ></app-card-display>
     </div>
 
@@ -180,12 +172,17 @@ export class DisplayOpeningComponent implements OnInit {
   activatedRoute = inject(ActivatedRoute);
   router = inject(Router);
   websocket = inject(Socket);
+  dialog = inject(MatDialog);
   protected readonly Loading = Loading;
   protected stream: MediaStream | null = null;
   protected readonly width: number = 300;
   protected sessionId: string = '';
   protected readonly cardsPerBooster: number = 14;
   protected readonly pricePerBooster: number = 5;
+
+  config: DisplayOpeningConfigInterface = {
+    cardsPerBooster: 14, language: 'fr', pricePerBooster: 5, tts: true, autoChangeBooster: false,
+  };
 
   history = signal<HistoryItem[]>([]);
   loadingHistory = signal<boolean>(false);
@@ -245,6 +242,7 @@ export class DisplayOpeningComponent implements OnInit {
 
   async loadSession() {
     this.loadingHistory.set(true);
+    this.config = this.storage.getObject('displayOpeningConfig') as DisplayOpeningConfigInterface ?? this.config;
     const savedHistory = await lastValueFrom(this.apiWebservice.getSession(this.sessionId));
     this.history.set(savedHistory);
     this.currentHistoryItem.set(this.history().at(-1) ?? null);
@@ -340,6 +338,7 @@ export class DisplayOpeningComponent implements OnInit {
 
   async saveSession() {
     this.storage.set('sessionId', this.sessionId);
+    this.storage.saveObject('displayOpeningConfig', this.config)
     const addedCards = await lastValueFrom(this.apiWebservice.saveCards({
       history: this.history(),
       sessionId: this.sessionId,
@@ -432,6 +431,18 @@ export class DisplayOpeningComponent implements OnInit {
       console.log('Text copied to clipboard');
     }).catch((err) => {
       console.error('Error copying text: ', err);
+    });
+  }
+
+  openSettings() {
+    const dialogRef = this.dialog.open(DisplayOpeningConfigDialogComponent, {
+      data: this.config,
+    });
+
+
+    dialogRef.afterClosed().subscribe((result) => {
+      this.config = result;
+      this.storage.saveObject('displayOpeningConfig', this.config)
     });
   }
 }
