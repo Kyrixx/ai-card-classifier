@@ -17,24 +17,9 @@ import { getCardName, getCardPrice } from '../../models/mtg-json';
   ],
   standalone: true,
   template: `
-    <div class="flex flex-col min-w-full border border-gray-700 rounded-md overflow-y-auto max-h-10/12">
-      <button
-        class="flex flex-col justify-start w-full px-2"
-      >
-        <div class="flex w-full">
-          <div class="flex w-full justify-around">
-            <div class="flex justify-start flex-grow">
-              <p class="mx-3">Booster n°{{ boosterNumber() }} - {{ items().length }} cartes</p>
-            </div>
-            <div class="flex flex-grow justify-end">
-              {{ getBoosterPrice(items()) }}&nbsp;€
-            </div>
-          </div>
-        </div>
-      </button>
-
+    <div class="flex flex-col min-w-full border border-gray-700 rounded-md overflow-y-auto max-h-12/12">
       <div class="flex flex-col w-full px-1">
-        @for (item of items(); track item.date) {
+        @for (item of items(); track $index) {
           <div class="flex flex-grow w-full justify-around">
             <div
               class="flex flex-grow justify-around cursor-pointer"

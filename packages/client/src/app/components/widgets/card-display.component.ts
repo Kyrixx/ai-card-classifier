@@ -1,4 +1,4 @@
-import { Component, effect, input, signal } from '@angular/core';
+import { Component, effect, input, output, signal } from '@angular/core';
 import { NgIf, UpperCasePipe } from '@angular/common';
 import { Loading } from '../../models/loading.enum';
 import { Card } from '../../models/mtg-json';
@@ -30,20 +30,12 @@ import { MatIcon } from '@angular/material/icon';
       <div *ngIf="card()" class="flex flex-row justify-evenly min-w-full">
         <p>Set : {{ card()?.setCode | uppercase }}</p>
         <p class="align-center">Prix : {{ getCardPrice(card()).toFixed(2) }}€</p>
-        <div
-          class="flex justify-center cursor-pointer hover:underline"
-          (click)="changeLanguage()"
-        >
-          <mat-icon>flip_camera_android</mat-icon>
-          <span [class.text-blue-400]="currentLanguage() === 'fr'">FR</span>/<span [class.text-blue-400]="currentLanguage() === 'en'">EN</span>
-        </div>
       </div>
     </section>
   `,
   imports: [
     NgIf,
     UpperCasePipe,
-    MatIcon,
   ],
   styles: `
     :host {
@@ -62,7 +54,7 @@ export class CardDisplayComponent {
   card = input<Card | null>(null);
   loadingState = input<Loading>(Loading.Initial);
   enabled = input(false);
-  currentLanguage = signal<string>('fr');
+  currentLanguage = input<string>('fr');
   imageLoaded = signal(false);
 
   protected readonly width = 600;
@@ -91,8 +83,5 @@ export class CardDisplayComponent {
         this.imageLoaded.set(false);
       }
     });
-  }
-  changeLanguage() {
-    this.currentLanguage.set(this.currentLanguage() === 'fr' ? 'en' : 'fr');
   }
 }
