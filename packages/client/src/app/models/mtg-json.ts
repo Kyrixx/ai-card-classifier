@@ -619,7 +619,18 @@ export type VintageFile = { meta: Meta; data: Record<string, CardSet>; };
 export type VintageAtomicFile = { meta: Meta; data: Record<string, CardAtomic>; };
 
 export type Card = CardDeck;
-export const getFrenchCard = (card?: Card | null) => card?.foreignData?.find((foreignData) => foreignData?.language === 'French');
+export const getFrenchCard = (card?: Card | null): Card | null => {
+  if(!card) {
+    return null;
+  }
+
+  const foreignData = card?.foreignData?.find((foreignData) => foreignData?.language === 'French');
+  return {
+    ...card,
+    name: foreignData?.name ?? '',
+    text: foreignData?.text ?? '',
+  }
+}
 export const getCardPrice = (card?: Card | null) => {
   const filterByCurrency = (prices: Price[], currency: string) =>
     prices
