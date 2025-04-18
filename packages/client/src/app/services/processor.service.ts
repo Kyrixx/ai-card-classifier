@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { lastValueFrom } from 'rxjs';
+import { ApiService } from './api.service';
 
 type MediaRecorderOrNull = MediaRecorder | null;
 
@@ -8,7 +9,7 @@ type MediaRecorderOrNull = MediaRecorder | null;
 export class ProcessorService {
   static mediaRecorder: MediaRecorderOrNull = null;
 
-  constructor(private readonly http: HttpClient) {}
+  constructor(private readonly apiWebservice: ApiService) {}
 
   static async triggerVideo(): Promise<MediaStream> {
     if (!ProcessorService.mediaRecorder) {
@@ -45,13 +46,7 @@ export class ProcessorService {
 
     try {
       const body = await getRequestBody();
-      return await lastValueFrom(
-        this.http.post(
-          `${window.location.protocol}//${window.location.hostname}:3100/r?sessionId=${currentSession.sessionId}&boosterId=${currentSession.boosterId}&date=${currentSession.date}`,
-          body,
-          { responseType: 'json' }
-        )
-      );
+      return await lastValueFrom(this.apiWebservice.triggerDetection(body, currentSession));
     } catch (e: any) {
       throw new Error(JSON.stringify(e));
     }

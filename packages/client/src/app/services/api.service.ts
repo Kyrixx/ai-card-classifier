@@ -33,6 +33,14 @@ export class ApiService {
     return this.http.post<any[]>(`${this.baseUrl}/save/cards`, cards);
   }
 
+  triggerDetection(body: FormData, currentSession: {sessionId: string, boosterId: number, date: number}) {
+    return this.http.post(
+      `${this.baseUrl}/r?sessionId=${currentSession.sessionId}&boosterId=${currentSession.boosterId}&date=${currentSession.date}`,
+      body,
+      { responseType: 'json' },
+    );
+  }
+
   deleteCard(params: { _id: number }) {
     return this.http.delete(`${this.baseUrl}/save/card`, {body: params});
   }
