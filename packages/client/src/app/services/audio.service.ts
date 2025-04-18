@@ -14,4 +14,16 @@ export class AudioService {
     audio.volume = 0.4;
     await audio.play();
   }
+
+  static async applePay() {
+    const audio = new Audio('audio/applepay.mp3');
+    audio.volume = 0.4;
+    await audio.play();
+  }
+
+  static async gotItem() {
+    const audio = new Audio('audio/got_item.mp3');
+    audio.volume = 0.4;
+    await audio.play();
+  }
 }

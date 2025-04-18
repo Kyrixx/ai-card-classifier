@@ -329,15 +329,18 @@ export class DisplayOpeningComponent implements OnInit {
     this.currentHistoryItem.set(historyItem);
 
     if (getCardPrice(this.card()) >= this.config.pricePerBooster) {
-      await AudioService.sparkles();
+      await AudioService.gotItem();
     }
-    if (!isDoublon && this.config.tts) {
-      this.tts.speak(this.card()?.name ?? '', this.config.language);
+    if (!isDoublon) {
+      this.config.tts ?
+        this.tts.speak(this.card()?.name ?? '', this.config.language) :
+        await AudioService.applePay();
     }
     if (
       this.history().filter(h => h.boosterId === this.boosterId()).length >= this.cardsPerBooster &&
       this.config.autoChangeBooster
     ) {
+      await AudioService.sparkles();
       this.nextBooster();
     }
   }
