@@ -4,7 +4,7 @@ import { emit } from './websocket';
 
 export let activeThreads = 0;
 
-export async function runWorker(workerData: { filename: string }) {
+export async function runWorker(workerData: { filename: string, sessionId: string, boosterId: number, date: number }) {
   return new Promise((resolve, reject) => {
     const worker = new Worker(path.resolve(__dirname, '..', 'worker.js'), {
       workerData: { path: './lib/thread-worker.ts', ...workerData }

@@ -43,7 +43,12 @@ export function root(): express.Router {
     const now = Date.now();
     fs.writeFileSync(`./assets/video-${now}.webm`, (req as any).file.buffer);
     emit('requested');
-    runWorker({ filename: `./assets/video-${now}.webm`}).then((card) => {
+    runWorker({
+      filename: `./assets/video-${now}.webm`,
+      sessionId: req.query.sessionId as string,
+      boosterId: parseInt(req.query.boosterId as string, 10),
+      date: parseInt(req.query.date as string, 10),
+    }).then((card) => {
       res.status(201).send(card);
     }).catch((error) => {
       res.status(400).send(error);

@@ -32,7 +32,7 @@ export class ProcessorService {
     });
   }
 
-  async triggerRecognition(): Promise<any> {
+  async triggerRecognition(currentSession: {sessionId: string, boosterId: number, date: number}): Promise<any> {
     const getRequestBody = async(): Promise<FormData> => {
       let formData = new FormData();
       formData.append(
@@ -47,7 +47,7 @@ export class ProcessorService {
       const body = await getRequestBody();
       return await lastValueFrom(
         this.http.post(
-          `${window.location.protocol}//${window.location.hostname}:3100/r`,
+          `${window.location.protocol}//${window.location.hostname}:3100/r?sessionId=${currentSession.sessionId}&boosterId=${currentSession.boosterId}&date=${currentSession.date}`,
           body,
           { responseType: 'json' }
         )

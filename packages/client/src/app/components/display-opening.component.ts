@@ -53,34 +53,30 @@ import { DisplayOpeningConfigInterface } from '../models/config';
       <div class="flex flex-col max-w-sm mx-12 mt-4 bg-gray-700">
         <div class="flex w-full items-center">
           <div class="px-4 py-2 text-center flex items-center justify-center w-1/2 whitespace-nowrap">Common :</div>
-          <div class="px-4 py-2 text-center w-1/2">{{ cardCounts()['common'] }}</div>
+          <div class="px-4 py-2 text-center w-1/2">{{ collectionCompletion()['common'] }}</div>
         </div>
 
         <div class="flex w-full items-center">
           <div class="px-4 py-2 text-center flex items-center justify-center w-1/2 whitespace-nowrap">Uncommon :</div>
-          <div class="px-4 py-2 text-center w-1/2">{{ cardCounts()['uncommon'] }}</div>
+          <div class="px-4 py-2 text-center w-1/2">{{ collectionCompletion()['uncommon'] }}</div>
         </div>
 
         <div class="flex w-full items-center">
           <div class="px-4 py-2 text-center flex items-center justify-center w-1/2 whitespace-nowrap">Rare :</div>
-          <div class="px-4 py-2 text-center w-1/2">{{ cardCounts()['rare'] }}</div>
+          <div class="px-4 py-2 text-center w-1/2">{{ collectionCompletion()['rare'] }}</div>
         </div>
 
         <div class="flex w-full items-center">
           <div class="px-4 py-2 text-center flex items-center justify-center w-1/2 whitespace-nowrap">Mythic :</div>
-          <div class="px-4 py-2 text-center w-1/2">{{ cardCounts()['mythic'] }}</div>
+          <div class="px-4 py-2 text-center w-1/2">{{ collectionCompletion()['mythic'] }}</div>
         </div>
       </div>
 
       <div class="flex justify-evenly mt-4 flex-wrap">
         <button class="bg-blue-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1 flex-1"
-                (click)="detectCard()">Ask
-          AI
-        </button>
-        <button class="bg-blue-800 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1 flex-1"
-                (click)="resetSession()">
-          Reset
-          Session
+                (click)="detectCard()"
+        >
+          Ask AI
         </button>
         <button class="bg-green-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1 flex-1"
                 (click)="nextBooster()">
@@ -249,8 +245,7 @@ export class DisplayOpeningComponent implements OnInit {
   async loadSession() {
     this.loadingHistory.set(true);
     this.config = this.storage.getObject('displayOpeningConfig') as DisplayOpeningConfigInterface ?? this.config;
-    const savedHistory = await lastValueFrom(this.apiWebservice.getSession(this.sessionId));
-    this.history.set(savedHistory);
+    this.history.set(await lastValueFrom(this.apiWebservice.getSession(this.sessionId)));
     this.currentHistoryItem.set(this.history().at(-1) ?? null);
     this.boosterId.set(this.history().length > 0 ? this.history().at(-1)!.boosterId : 1);
     this.updateDoublonInHistory();
@@ -313,63 +308,42 @@ export class DisplayOpeningComponent implements OnInit {
 
   async detectCard(foil: boolean = false) {
     await AudioService.beep();
-    let card = await this.processorService.triggerRecognition();
+
+    const detectionDate = Date.now();
+    let card = await this.processorService.triggerRecognition({
+      sessionId: this.sessionId,
+      boosterId: this.boosterId(),
+      date: detectionDate,
+    });
+
     let isDoublon = this.isCardDoublon(card, this.history());
     const historyItem: HistoryItem = {
-      _id: -1,
+      _id: null,
       card,
       foil,
-      date: Date.now(),
+      date: detectionDate,
       boosterId: this.boosterId(),
       isDoublon,
     };
     this.history.set([...this.history(), historyItem]);
     this.currentHistoryItem.set(historyItem);
-    if (getCardPrice(this.card()) >= 10) {
+
+    if (getCardPrice(this.card()) >= this.config.pricePerBooster) {
       await AudioService.sparkles();
     }
-    if (!isDoublon) {
-      // this.tts.speak(getFrenchCard(this.card())?.name ?? '');
-      this.tts.speak(this.card()?.name ?? '');
+    if (!isDoublon && this.config.tts) {
+      this.tts.speak(this.card()?.name ?? '', this.config.language);
     }
-    if (this.history().filter(h => h.boosterId === this.boosterId()).length >= this.cardsPerBooster) {
+    if (
+      this.history().filter(h => h.boosterId === this.boosterId()).length >= this.cardsPerBooster &&
+      this.config.autoChangeBooster
+    ) {
       this.nextBooster();
     }
-    await this.saveSession();
   }
 
   nextBooster() {
     this.boosterId.set(this.boosterId() + 1);
-  }
-
-  async saveSession() {
-    this.storage.set('sessionId', this.sessionId);
-    this.storage.saveObject('displayOpeningConfig', this.config);
-    const addedCards = await lastValueFrom(this.apiWebservice.saveCards({
-      history: this.history(),
-      sessionId: this.sessionId,
-    }));
-    addedCards.forEach((addedCard) => {
-      this.history.update(history => {
-        const updatedHistory = [...history];
-        const index = updatedHistory.findIndex(h => h.date === addedCard.createdAt);
-        if (index !== -1) {
-          updatedHistory[index]._id = addedCard._id;
-        }
-        return updatedHistory;
-      });
-    });
-  }
-
-  async resetSession() {
-    if (!window.confirm('Are you sure you want to reset the session?')) {
-      return;
-    }
-    this.storage.resetSession();
-    this.currentHistoryItem.set(null);
-    this.history.set([]);
-    this.boosterId.set(1);
-    this.webSocketState.set(Loading.Initial);
   }
 
   handleItemClicked(event: any) {
@@ -381,10 +355,23 @@ export class DisplayOpeningComponent implements OnInit {
     if (!item) {
       return;
     }
-    this.history.set(this.history().filter((h) => h.date !== item.date));
+
+    let itemToDelete = item;
+    if (!itemToDelete._id) {
+      let newHistory = await lastValueFrom(this.apiWebservice.getSession(this.sessionId));
+      this.history.set(newHistory);
+      const newItem = newHistory.find(h => h.date === item?.date);
+      if (!newItem) {
+        console.error('Item not found in history');
+        return;
+      }
+      itemToDelete = newItem;
+    }
+
+    this.history.set(this.history().filter((h) => h._id !== itemToDelete._id));
     this.currentHistoryItem.set(this.history().at(-1) ?? null);
     await lastValueFrom(this.apiWebservice.deleteCard({
-      _id: item._id,
+      _id: itemToDelete._id!,
     }));
     this.updateDoublonInHistory();
   }
@@ -447,8 +434,10 @@ export class DisplayOpeningComponent implements OnInit {
       data: this.config,
     });
 
-
     dialogRef.afterClosed().subscribe((result) => {
+      if (!result) {
+        return;
+      }
       this.config = result;
       this.storage.saveObject('displayOpeningConfig', this.config);
     });
