@@ -51,6 +51,16 @@ import { MatOption, MatSelect } from '@angular/material/select';
             <mat-option value="fr">Français</mat-option>
           </mat-select>
         </mat-form-field>
+        <mat-form-field appearance="outline">
+          <mat-label>Set</mat-label>
+          <mat-select
+            type="text"
+            formControlName="set"
+          >
+            <mat-option value="tdm">TDM</mat-option>
+            <mat-option value="dft">DFT</mat-option>
+          </mat-select>
+        </mat-form-field>
       </form>
     </mat-dialog-content>
     <mat-dialog-actions>
@@ -89,5 +99,6 @@ export class DisplayOpeningConfigDialogComponent {
     tts: new FormControl<boolean>(this.data.tts ?? false),
     autoChangeBooster: new FormControl<boolean>(this.data.autoChangeBooster ?? false),
     language: new FormControl<string>(this.data.language),
+    set: new FormControl<string>(this.data.set),
   })
 }

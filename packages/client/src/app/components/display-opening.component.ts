@@ -52,6 +52,11 @@ import { DisplayOpeningConfigInterface } from '../models/config';
 
       <div class="flex flex-col max-w-sm mx-12 mt-4 bg-gray-700">
         <div class="flex w-full items-center">
+          <div class="px-4 py-2 text-center flex items-center justify-center w-1/2 whitespace-nowrap">Total :</div>
+          <div class="px-4 py-2 text-center w-1/2">{{ collectionCompletion()['total'] }}</div>
+        </div>
+
+        <div class="flex w-full items-center">
           <div class="px-4 py-2 text-center flex items-center justify-center w-1/2 whitespace-nowrap">Common :</div>
           <div class="px-4 py-2 text-center w-1/2">{{ collectionCompletion()['common'] }}</div>
         </div>
@@ -173,11 +178,9 @@ export class DisplayOpeningComponent implements OnInit {
   protected stream: MediaStream | null = null;
   protected readonly width: number = 300;
   protected sessionId: string = '';
-  protected readonly cardsPerBooster: number = 14;
-  protected readonly pricePerBooster: number = 5;
 
   config: DisplayOpeningConfigInterface = {
-    cardsPerBooster: 14, language: 'fr', pricePerBooster: 5, tts: true, autoChangeBooster: false,
+    cardsPerBooster: 14, language: 'fr', pricePerBooster: 5, tts: true, autoChangeBooster: false, set: '',
   };
 
   history = signal<HistoryItem[]>([]);
@@ -337,7 +340,7 @@ export class DisplayOpeningComponent implements OnInit {
         await AudioService.applePay();
     }
     if (
-      this.history().filter(h => h.boosterId === this.boosterId()).length >= this.cardsPerBooster &&
+      this.history().filter(h => h.boosterId === this.boosterId()).length >= this.config.cardsPerBooster &&
       this.config.autoChangeBooster
     ) {
       await AudioService.sparkles();

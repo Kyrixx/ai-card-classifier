@@ -4,4 +4,5 @@ export interface DisplayOpeningConfigInterface {
   tts: boolean;
   autoChangeBooster: boolean;
   language: string;
+  set: string;
 }

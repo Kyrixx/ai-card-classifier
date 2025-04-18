@@ -31,7 +31,7 @@ Content-Type: application/json
   "createdAt": 1743117649000
 }
 
-### POST sesion
+### POST session
 POST {{base_url}}/session
 Content-Type: application/json
 
