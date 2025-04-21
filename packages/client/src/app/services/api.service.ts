@@ -3,14 +3,19 @@ import { HttpClient } from '@angular/common/http';
 import { SetCardCount } from '../models/api/set-card-count';
 import { HistoryItem } from '../models/history-item';
 import { Session } from '../models/api/session';
-import { of } from 'rxjs';
+import { lastValueFrom, of } from 'rxjs';
+import { appConfig } from '../../app.config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ApiService {
-  private readonly baseUrl: string = `${window.location.protocol}//${window.location.hostname}:3100`;
-  constructor(private readonly http: HttpClient) { }
+  private readonly baseUrl: string = `${appConfig.api.protocol}//${appConfig.api.baseUrl}:${appConfig.api.port}`;
+  constructor(private readonly http: HttpClient) {
+    lastValueFrom(this.getSessions()).catch(error => {
+      console.error('Error fetching sessions:', error);
+    });
+  }
 
   getCardCountForSet(set: string) {
     return this.http.get<SetCardCount[]>(`${this.baseUrl}/set/${set.toUpperCase()}/card-count`);
