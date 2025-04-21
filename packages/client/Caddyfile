@@ -1,4 +1,4 @@
-:8081, mackapou-pro-m4.local:8081 {
+:8443, mackapou-pro-m4.local:8443 {
 	root * dist/client/browser
 	file_server
 	encode gzip
@@ -15,5 +15,23 @@
 		Referrer-Policy "no-referrer-when-downgrade"
 	}
 
-	tls ../../certs/server.crt ../../certs/server.key
+	tls {env.CERT_PATH} {env.KEY_PATH}
+}
+
+:8080 {
+	root * dist/client/browser
+	file_server
+	encode gzip
+
+	# Rediriger toutes les requêtes vers index.html pour le routage Angular
+	try_files {path} /index.html
+
+	# Ajouter des en-têtes de sécurité
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		X-XSS-Protection "1; mode=block"
+		Referrer-Policy "no-referrer-when-downgrade"
+	}
 }

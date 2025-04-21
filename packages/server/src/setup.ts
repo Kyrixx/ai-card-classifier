@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import axios from 'axios';
 import * as cliProgress from 'cli-progress';
 import * as readline from 'readline'
+import { parseBoolean } from './lib/utils';
 
 
 
@@ -18,7 +19,7 @@ async function askQuestion(question: string): Promise<string> {
   });
 }
 
-function doesFileExistsFromEnvVar(envVarName) {
+function doesFileExistsFromEnvVar(envVarName: string) {
   const path = process.env[envVarName];
   if (!path) {
     console.log(`Environment variable ${envVarName} is not set or is empty.`);
@@ -56,8 +57,9 @@ async function checkCardsDatabase() {
         bar.update(progressEvent.loaded / 1_000_000);
       }
     })).data;
-    fs.writeFileSync(process.env.CARDS_DB_PATH ?? './src/assets/cards.sqlite', file);
-    console.log('\n\n ✅Cards database downloaded from https://mtgjson.com/api/v5/AllPrintings.sqlite at src/assets/cards.sqlite.');
+    const filepath = process.env.CARDS_DB_PATH ?? './assets/db/cards.sqlite';
+    fs.writeFileSync(filepath, file);
+    console.log(`\n\n ✅Cards database downloaded from https://mtgjson.com/api/v5/AllPrintings.sqlite at ${filepath}.`);
   }
 }
 
@@ -86,16 +88,17 @@ async function checkCardPricesDatabase() {
       }
     })).data;
     bar.stop();
-    fs.writeFileSync(process.env.CARD_PRICES_DB_PATH ?? './src/assets/prices.sqlite', file);
+    let filepath = process.env.CARD_PRICES_DB_PATH ?? './assets/db/prices.sqlite';
+    fs.writeFileSync(filepath, file);
 
-    console.log('\n\n ✅Prices database downloaded from https://mtgjson.com/api/v5/AllPricesToday.sqlite at src/assets/prices.sqlite.');
+    console.log(`\n\n✅Prices database downloaded from https://mtgjson.com/api/v5/AllPricesToday.sqlite at ${filepath}.`);
   }
 }
 
 function checkCollectionDatabase() {
   if(!doesFileExistsFromEnvVar('COLLECTION_DB_PATH')) {
     console.log(`Issue with COLLECTION_DB_PATH. Value: ${process.env.COLLECTION_DB_PATH}`);
-    fs.copyFileSync('./src/assets/empty_collection.sqlite', process.env.COLLECTION_DB_PATH ?? './src/assets/collection.sqlite');
+    fs.copyFileSync('./assets/db/empty_collection.sqlite', process.env.COLLECTION_DB_PATH ?? './assets/db/collection.sqlite');
   }
 }
 
@@ -115,7 +118,7 @@ export const assertAssetsArePresent = async () => {
   await checkCardsDatabase();
   await checkCardPricesDatabase();
   checkCollectionDatabase();
-  if(process.env.USE_HTTPS) {
+  if(parseBoolean(process.env.USE_HTTPS)) {
     checkCertificates();
   }
 }

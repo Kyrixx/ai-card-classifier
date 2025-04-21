@@ -4,7 +4,7 @@
   "scripts": {
     "ng": "ng",
     "start": "ng serve --host 0.0.0.0",
-    "start:caddy": "npm run build && caddy run",
+    "start:caddy": "npm run build && CERT_PATH=../../certs/server.crt KEY_PATH=../../certs/server.key caddy run",
     "launch": "npm run build && caddy run",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",

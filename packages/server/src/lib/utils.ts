@@ -2,6 +2,9 @@ export function parseBoolean(value): boolean {
     const truthybooleanRegex = /^(true|yes|1)$/i;
     const falsyBooleanRegex = /^(false|no|0)$/i;
 
+    if(value === undefined || value === null) {
+      return false;
+    }
     if (truthybooleanRegex.test(value)) {
         return true;
     }

@@ -1,6 +1,6 @@
 node_modules/
 **/.env
-packages/server/assets/*.jpg
+packages/server/assets/**/*.jpg
 **/*.pem
 **/*.cer
 **/dist
@@ -9,7 +9,7 @@ packages/server/assets/*.jpg
 .idea/dataSources.xml
 certs/**
 **/*.sqlite
-!packages/server/src/assets/empty_collection.sqlite
+!packages/server/assets/db/empty_collection.sqlite
 **/*.sqlite-shm
 **/*.sqlite-wal
 video.webm

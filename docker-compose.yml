@@ -5,8 +5,12 @@ services:
       dockerfile: Dockerfile
     env_file:
       - ./packages/server/.env
+    environment:
+      CERT_PATH: /usr/src/app/certs/server.crt
+      KEY_PATH: /usr/src/app/certs/server.key
     volumes:
-      - ./packages/server/certs:/usr/src/app/certs
+      - ./certs:/usr/src/app/certs
+      - ./packages/server/assets/db:/usr/src/app/assets/db
     ports:
       - "3100:3100"
       - "3000:3000"
@@ -15,10 +19,11 @@ services:
     build:
       context: ./packages/client
       dockerfile: Dockerfile
+    volumes:
+      - ./certs:/usr/src/app/certs
+    environment:
+      CERT_PATH: /usr/src/app/certs/server.crt
+      KEY_PATH: /usr/src/app/certs/server.key
     ports:
-      - "8081:8081"
-
-  redis:
-    image: redis:alpine
-    ports:
-      - "6379:6379"
+      - "8080:8080"
+      - "8443:8443"

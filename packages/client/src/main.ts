@@ -15,6 +15,9 @@ const appConfig: ApplicationConfig = {
   ],
 };
 
+if(window.location.hostname !== 'localhost' && window.location.protocol !== 'https:') {
+  alert('Vous devez utiliser le protocole HTTPS pour accéder à cette application en dehors de localhost');
+}
 
 bootstrapApplication(CoreComponent, appConfig)
   .catch((err) => console.error(err));
