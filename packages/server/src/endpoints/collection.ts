@@ -22,7 +22,7 @@ export function collection(): express.Router {
   app.patch('/fix', async (req: Request, res: Response) => {
     const cards: any[] = (getAllCards() as any[]);
     const goodCards = getCardsByUuids(cards.map((card) => card.uuid as string));
-    cards.forEach((card) => {
+    cards.filter(c => !c.setCode || !c.number).forEach((card) => {
       const uuid = card.uuid as string;
       const goodCard: any = goodCards.find((goodCard: any) => goodCard.uuid === uuid);
       updateCard({
@@ -32,6 +32,7 @@ export function collection(): express.Router {
       });
     });
 
+    console.log(`[collection] Updated ${cards.length} cards`);
     res.send(`Updated ${cards.length} cards`);
   });
 
