@@ -81,6 +81,7 @@ const cleanEmptySessionsQuery = myDb.prepare(`
   DELETE FROM sessions WHERE sessionId NOT IN (SELECT DISTINCT sessionId FROM cards)
 `);
 export function cleanEmptySessions() {
+  console.log(`[my-db] Cleaning empty sessions`);
   cleanEmptySessionsQuery.run();
 }
 
