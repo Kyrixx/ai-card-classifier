@@ -18,7 +18,10 @@ RUN mkdir -p /usr/src/app/assets
 
 COPY package.json .
 COPY src/worker.js ./worker.js
+COPY assets/ ./assets/
 COPY --from=builder /usr/src/app/node_modules ./node_modules
 COPY --from=builder /usr/src/app/dist .
+
+RUN node setup.js -y
 
 CMD ["node", "main.js"]
