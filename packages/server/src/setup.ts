@@ -7,6 +7,9 @@ import { parseBoolean } from './lib/utils';
 
 
 async function askQuestion(question: string): Promise<string> {
+  if(process.argv.includes('-y')) {
+    return 'y';
+  }
   const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout
@@ -57,6 +60,7 @@ async function checkCardsDatabase() {
         bar.update(progressEvent.loaded / 1_000_000);
       }
     })).data;
+    bar.stop();
     const filepath = process.env.CARDS_DB_PATH ?? './assets/db/cards.sqlite';
     fs.writeFileSync(filepath, file);
     console.log(`\n\n ✅Cards database downloaded from https://mtgjson.com/api/v5/AllPrintings.sqlite at ${filepath}.`);
