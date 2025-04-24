@@ -6,7 +6,7 @@ import {
   getSessions,
   updateSession,
 } from '../lib/repository/my-db';
-import { getCardsByUuids } from '../lib/repository/mtg-json';
+import { getCards } from '../lib/repository/mtg-json';
 import { getCardFromMtgJson } from '../lib/mtg';
 import bodyParser from 'body-parser';
 
@@ -18,16 +18,43 @@ export function session(): express.Router {
   });
 
   app.get('/:sessionId', async (req: Request, res: Response) => {
+    console.log(`[session] Getting session ${req.params.sessionId}`);
     const cardsBySessionId = getCardsBySessionId(req.params.sessionId);
-    const cards = getCardsByUuids([...new Set(cardsBySessionId.map((card: any) => card.uuid))]);
+    const cards = getCards(cardsBySessionId.map((card: any) => ({
+      set: card.setCode,
+      collectorNumber: card.number,
+    })));
+
+    // Error handling
+    if (!cards || cards.length === 0) {
+      res.status(500).send({ error: 'No cards were found' });
+      return;
+    }
+    let notFoundCards = cards.filter(c => c === undefined);
+    if (notFoundCards.length > 0) {
+      const nfc = cards
+        .filter(c => c !== undefined)
+        .map((c: any) => c.uuid)
+        .reduce((acc: string[], card: any) => {
+          return acc.filter(c => c !== card);
+        }, cardsBySessionId.map((ca: any) => ca.uuid));
+      res.status(500).send({ error: 'Some cards were not found', count: notFoundCards.length, uuids: nfc });
+      return;
+    }
+
+
     const result = cardsBySessionId.map((card: any) => {
-      const c: any = cards.find((c: any) => c.uuid === card.uuid);
+      const c: any = cards.find((ca: any) => ca.setCode === card.setCode && parseInt(ca.number) === parseInt(card.number));
+      if (!c) {
+        console.log(`Card not found ${card.setCode} ${card.number}`);
+        return null;
+      }
       return {
         _id: card._id,
         card: getCardFromMtgJson(c.setCode, parseInt(c.number)),
         boosterId: card.boosterId,
-        date: card.createdAt
-      }
+        date: card.createdAt,
+      };
     });
     res.status(200).send(result);
   });
@@ -43,7 +70,11 @@ export function session(): express.Router {
       res.status(400).send({ error: 'Expected session type' });
       return;
     }
-    const session = createSession({ sessionId: Math.random().toString(36).substring(2, 15), type: req.body.type, name: req.body.name ?? '' });
+    const session = createSession({
+      sessionId: Math.random().toString(36).substring(2, 15),
+      type: req.body.type,
+      name: req.body.name ?? '',
+    });
     res.status(200).send(session);
   });
 

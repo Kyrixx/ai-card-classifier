@@ -46,7 +46,7 @@ export function getDistinctSetCodes(): string[] {
 }
 
 const getCardQuery = mtgJsonDb.prepare(`
-    SELECT * FROM cards WHERE setCode = :set AND number = :collectorNumber
+    SELECT * FROM cards WHERE setCode = :setCode AND number = :number
 `);
 const getCardIdentifiersQuery = mtgJsonDb.prepare(`
     SELECT * FROM cardIdentifiers WHERE uuid = :uuid
@@ -55,8 +55,13 @@ const getCardFrenchQuery = mtgJsonDb.prepare(`
     SELECT * FROM cardForeignData WHERE uuid = :uuid AND language = 'French'
 `);
 export function getCard(params: { set: string, collectorNumber: string }) {
-  const card: any = getCardQuery.get(params);
+  const namedParameters = {
+    setCode: params.set.toUpperCase(),
+    number: params.collectorNumber.toString(),
+  };
+  const card: any = getCardQuery.get(namedParameters);
   if(!card || !card.uuid) {
+    console.log(`Card not found ${JSON.stringify(namedParameters, null, 2)}`);
     throw new Error('Card not found');
   }
   const identifiers: any = getCardIdentifiersQuery.get({ uuid: card.uuid });
@@ -66,6 +71,16 @@ export function getCard(params: { set: string, collectorNumber: string }) {
     identifiers: identifiers,
     foreignData: [french],
   };
+}
+export function getCards(params: { set: string, collectorNumber: string }[]) {
+  return params.map((param) => {
+    try {
+      return getCard(param);
+    } catch (e) {
+      // console.log(`Card not found ${param.set} ${param.collectorNumber}`);
+      return undefined;
+    }
+  });
 }
 
 const getUniqueCardsForSetQuery = mtgJsonDb.prepare(`
