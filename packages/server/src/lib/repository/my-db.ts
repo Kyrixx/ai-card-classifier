@@ -1,4 +1,5 @@
 import { DatabaseSync } from 'node:sqlite';
+
 const myDb = new DatabaseSync(process.env.COLLECTION_DB_PATH as string);
 
 export function setupUp() {
@@ -23,11 +24,13 @@ export function setupUp() {
 }
 
 const saveCardQuery = myDb.prepare(`
-  INSERT INTO cards (uuid, createdAt, sessionId, boosterId) VALUES (:uuid, datetime(:createdAt, 'unixepoch'), :sessionId, :boosterId)
+  INSERT INTO cards (uuid, createdAt, sessionId, boosterId, setCode, number) VALUES (:uuid, datetime(:createdAt, 'unixepoch'), :sessionId, :boosterId, :setCode, :number)
 `);
-export function saveCard(params: { uuid: string, sessionId: string, boosterId: number, createdAt: number }) {
+export function saveCard(params: { uuid: string, sessionId: string, boosterId: number, createdAt: number, setCode?: string, number?: number }) {
   const statement = saveCardQuery.run({
     ...params,
+    setCode: params?.setCode ?? null,
+    number: params?.number ?? null,
     createdAt: params.createdAt / 1000,
   });
   return statement.lastInsertRowid;

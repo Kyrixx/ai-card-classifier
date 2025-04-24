@@ -2,7 +2,7 @@ import { isMainThread, parentPort, workerData } from 'worker_threads';
 import { getFrameFromVideoBuffer } from './video';
 import { getCardInfoFromAI } from './ai';
 import { assertCardIsUsable, getCardFromMtgJson } from './mtg';
-import { getUuids } from './repository/mtg-json';
+import { getCard, getUuids } from './repository/mtg-json';
 import { saveCard } from './repository/my-db';
 
 const threadMain = async () => {
@@ -25,15 +25,8 @@ const threadMain = async () => {
     });
     throw new Error('Card has issues');
   }
-
-  const uuids = getUuids([{ set: json.set, collectorNumber: `${json.collector_number}` }]);
-  if (uuids.length === 0) {
-    parentPort?.postMessage({ update: 'error', error: { message: 'No UUID found' } });
-    throw new Error('No UUID found');
-  }
-
   try {
-    saveCard({uuid: uuids[0], sessionId, boosterId, createdAt: date});
+    saveCard({uuid: card.uuid, setCode: card.setCode, number: card.number, sessionId, boosterId, createdAt: date});
   } catch (e) {
     parentPort?.postMessage({ update: 'error', error: { message: 'Card already saved' } });
     throw new Error('Card already saved');
