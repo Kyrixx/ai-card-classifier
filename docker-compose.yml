@@ -1,19 +1,21 @@
 services:
   server:
     build:
-      context: ./packages/server
+      context: packages/server-old
       dockerfile: Dockerfile
     env_file:
-      - ./packages/server/.env
+      - packages/server-old/.env
     environment:
-      CERT_PATH: /usr/src/app/certs/server.crt
-      KEY_PATH: /usr/src/app/certs/server.key
+      CERT_PATH: /usr/src/app/certs/server-old.crt
+      KEY_PATH: /usr/src/app/certs/server-old.key
     volumes:
       - ./certs:/usr/src/app/certs
-      - ./packages/server/assets/db:/usr/src/app/assets/db
+      - ./packages/server-old/assets/db:/usr/src/app/assets/db
     ports:
       - "3100:3100"
       - "3000:3000"
+    networks:
+      - ai-card-network
 
   client:
     build:
@@ -22,8 +24,38 @@ services:
     volumes:
       - ./certs:/usr/src/app/certs
     environment:
-      CERT_PATH: /usr/src/app/certs/server.crt
-      KEY_PATH: /usr/src/app/certs/server.key
+      CERT_PATH: /usr/src/app/certs/server-old.crt
+      KEY_PATH: /usr/src/app/certs/server-old.key
     ports:
       - "8080:8080"
       - "8443:8443"
+    networks:
+      - ai-card-network
+
+  db:
+    image: postgres:17
+    restart: always
+    env_file:
+      - .docker.env
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - ai-card-network
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "6080:8080"
+    networks:
+      - ai-card-network
+
+volumes:
+  pgdata:
+
+networks:
+  ai-card-network:
+    driver: bridge
+

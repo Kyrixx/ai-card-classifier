@@ -1,3 +1,5 @@
+import { RarityEnum } from './rarity.enum';
+
 export type BoosterConfig = {
   boosters: BoosterPack[];
   boostersTotalWeight: number;
@@ -95,7 +97,7 @@ export type CardDeck = {
   hasFoil: boolean;
   hasNonFoil: boolean;
   identifiers: Identifiers;
-  imageUris: ImageUris;
+  image_uris: ImageUris;
   isAlternative?: boolean;
   isFoil: boolean;
   isFullArt?: boolean;
@@ -117,8 +119,8 @@ export type CardDeck = {
   legalities: Legalities;
   life?: string;
   loyalty?: string;
-  manaCost?: string;
-  manaValue: number;
+  manacost?: string;
+  manavalue: number;
   name: string;
   number: string;
   originalPrintings?: string[];
@@ -131,12 +133,12 @@ export type CardDeck = {
   printings?: string[];
   promoTypes?: string[];
   purchaseUrls: PurchaseUrls;
-  rarity: string;
+  rarity: RarityEnum;
   relatedCards?: RelatedCards;
   rebalancedPrintings?: string[];
   rulings?: Rulings[];
   securityStamp?: string;
-  setCode: string;
+  setcode: string;
   side?: string;
   signature?: string;
   sourceProducts?: string[];
@@ -434,7 +436,7 @@ export type Identifiers = {
   scgId?: string;
   scryfallId?: string;
   scryfallCardBackId?: string;
-  scryfallOracleId?: string;
+  scryfalloracleid?: string;
   scryfallIllustrationId?: string;
   tcgplayerProductId?: string;
   tcgplayerEtchedProductId?: string;
@@ -646,7 +648,7 @@ export const getCardPrice = (card?: Card | null) => {
 }
 export const getCardImageUrl = (card?: Card | null, forceLanguage: string = 'fr') => {
   // @ts-ignore
-  return card?.imageUris?.[forceLanguage] || card?.imageUris?.fr || card?.imageUris?.en || card?.['image_uris'].fr || card?.['image_uris'].en || '';
+  return card?.image_uris?.[forceLanguage] || card?.image_uris?.fr || card?.image_uris?.en || '';
 }
 export const getCardName = (card?: Card | null) => {
   const frenchCard = getFrenchCard(card);

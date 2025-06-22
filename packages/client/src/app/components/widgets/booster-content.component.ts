@@ -5,6 +5,7 @@ import { Card } from '../../models/mtg-json';
 import { HistoryItem } from '../../models/history-item';
 import { MatIcon } from '@angular/material/icon';
 import { getCardName, getCardPrice } from '../../models/mtg-json';
+import { RarityEnum } from '../../models/rarity.enum';
 
 @Component({
   selector: 'booster-content',
@@ -19,6 +20,9 @@ import { getCardName, getCardPrice } from '../../models/mtg-json';
   template: `
     <div class="flex flex-col min-w-full border border-gray-700 rounded-md overflow-y-auto max-h-12/12">
       <div class="flex flex-col w-full px-1">
+        <div class="flex flex-grow w-full justify-around">
+
+        </div>
         @for (item of items(); track $index) {
           <div class="flex flex-grow w-full justify-around">
             <div
@@ -40,7 +44,14 @@ import { getCardName, getCardPrice } from '../../models/mtg-json';
                 <mat-icon *ngIf="item.isDoublon" class="small-icon">content_copy</mat-icon>
               </div>
               <div class="flex justify-end info">
-                <span class="flex">{{ item.card.setCode | uppercase }}</span>
+                <span
+                  class="flex"
+                  [class.text-black]="item.card.rarity === RarityEnum.Common"
+                  [class.text-cyan-500]="item.card.rarity === RarityEnum.Uncommon"
+                  [class.text-yellow-500]="item.card.rarity === RarityEnum.Rare"
+                  [class.text-orange-500]="item.card.rarity === RarityEnum.Mythic"
+                >{{ raritySymbols[item.card.rarity] }}&nbsp;</span>
+                <span class="flex">{{ item.card.setcode | uppercase }}</span>
                 <span class="mx-1">{{ getCollectorNumber(item.card) }}</span>
                 <span
                   class="mx-1"
@@ -52,7 +63,9 @@ import { getCardName, getCardPrice } from '../../models/mtg-json';
                 >{{ getCardPrice(item.card).toFixed(2) }}€</span>
               </div>
             </div>
-            <div class="mx-1 cursor-not-allowed" (click)="deleteItem.emit(item)">❌</div>
+            @if (canDelete()) {
+              <div class="mx-1 cursor-not-allowed hover:bg-red-100 rounded-sm" (click)="deleteItem.emit(item)">❌</div>
+            }
           </div>
         }
         <div class="flex justify-center" *ngIf="items().length === 0">Vide</div>
@@ -82,6 +95,13 @@ import { getCardName, getCardPrice } from '../../models/mtg-json';
 export class BoosterContentComponent {
   protected readonly getCardName = getCardName;
   protected readonly getCardPrice = getCardPrice;
+  protected readonly RarityEnum = RarityEnum;
+  protected readonly raritySymbols: Record<RarityEnum, string> = {
+    [RarityEnum.Common]: 'C',
+    [RarityEnum.Uncommon]: 'U',
+    [RarityEnum.Rare]: 'R',
+    [RarityEnum.Mythic]: 'M',
+  }
   oldItemsCount = 0;
   items = input<HistoryItem[], HistoryItem[]>([], {
     transform: (value: HistoryItem[]): HistoryItem[] => {
@@ -89,9 +109,10 @@ export class BoosterContentComponent {
         this.itemActivated.set(null);
         this.oldItemsCount = value.length;
       }
-      return value.sort((a, b) => a.date - b.date)
+      return value;
     }
   });
+  canDelete = input<boolean>(true);
 
   boosterNumber = input(1);
   activatedItem = output<HistoryItem>();
@@ -117,13 +138,13 @@ export class BoosterContentComponent {
       return [];
     }
 
-    if(!input.manaCost){
+    if(!input.manacost){
       return ['land'];
     }
 
     const manaValues: string[] = [];
     const regex = /\{([^\}]+)\}/g;
-    const computedInput = input.manaCost.split(' // ')[0];
+    const computedInput = input.manacost.split(' // ')[0];
     let match;
 
     while ((match = regex.exec(computedInput)) !== null) {
@@ -137,11 +158,5 @@ export class BoosterContentComponent {
     let collectorNumberLength = card.number.length;
 
     return collectorNumberLength === 1 ? `00${card.number}` : collectorNumberLength === 2 ? `0${card.number}` : card.number;
-  }
-
-  getBoosterPrice(items: HistoryItem[]): string {
-    return items.reduce((acc, item) => {
-      return acc + getCardPrice(item.card);
-    }, 0).toFixed(2);
   }
 }

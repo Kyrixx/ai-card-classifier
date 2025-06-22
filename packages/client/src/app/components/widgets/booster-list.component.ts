@@ -30,6 +30,7 @@ import { BoosterButtonItemComponent } from './booster-button-item.component';
             (click)="onBoosterClick.emit(bid)"
           >
             <app-booster-button-item
+              [priceThreshold]="priceThreshold()"
               [boosterNumber]="bid"
               [items]="getCardForBooster(bid)"
               [isBoosterActive]="bid === boosterId()"
@@ -59,6 +60,7 @@ import { BoosterButtonItemComponent } from './booster-button-item.component';
   `,
 })
 export class BoosterListComponent {
+  priceThreshold = input<number>(5.5);
   history = input<HistoryItem[]>([]);
   boosterId = input(1);
   onCardClick = output<HistoryItem>();
@@ -66,7 +68,7 @@ export class BoosterListComponent {
   deleteItem = output<HistoryItem>();
 
   getCardForBooster(boosterId: number): HistoryItem[] {
-    return this.history().filter(h => h.boosterId === boosterId);
+    return this.history().filter(h => h.boosterId === boosterId).sort((a, b) => a.date - b.date);
   }
 
   uniqueBoosterIds(): number[] {

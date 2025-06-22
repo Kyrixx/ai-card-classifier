@@ -17,9 +17,10 @@ import { MatIcon } from '@angular/material/icon';
              [width]="width"
              [height]="width*1.31"
              alt="Card"
-            (load)="imageLoaded.set(true)"
+             (load)="imageLoaded.set(true)"
         />
-        <div *ngIf="loadingState() !== Loading.Finished" class="loading-text absolute z-1 text-white italic bg-blue-700 w-full text-center">
+        <div *ngIf="loadingState() !== Loading.Finished"
+             class="loading-text absolute z-1 text-white italic bg-blue-700 w-full text-center">
           {{ LoadingLabels[loadingState()] }}
         </div>
       </div>
@@ -28,7 +29,7 @@ import { MatIcon } from '@angular/material/icon';
         {{ LoadingLabels[loadingState()] }}
       </div>
       <div *ngIf="card()" class="flex flex-row justify-evenly min-w-full">
-        <p>Set : {{ card()?.setCode | uppercase }}</p>
+        <p>Set : {{ card()?.setcode | uppercase }}</p>
         <p class="align-center">Prix : {{ getCardPrice(card()).toFixed(2) }}€</p>
       </div>
     </section>

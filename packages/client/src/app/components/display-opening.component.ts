@@ -1,4 +1,4 @@
-import { Component, computed, HostListener, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, HostListener, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { ProcessorService } from '../services/processor.service';
 import { StorageService } from '../services/storage.service';
 import { Socket } from 'ngx-socket-io';
@@ -20,6 +20,8 @@ import { NgIf } from '@angular/common';
 import { MatDialog } from '@angular/material/dialog';
 import { DisplayOpeningConfigDialogComponent } from './widgets/display-opening-config-dialog.component';
 import { DisplayOpeningConfigInterface } from '../models/config';
+import { MatDrawer, MatSidenavModule } from '@angular/material/sidenav';
+import { BoosterContentComponent } from './widgets/booster-content.component';
 
 @Component({
   selector: 'app-layout',
@@ -29,111 +31,150 @@ import { DisplayOpeningConfigInterface } from '../models/config';
     LoadingSpinnerComponent,
     MatIcon,
     NgIf,
+    MatSidenavModule,
+    BoosterContentComponent,
   ],
   template: `
-    <div class="flex flex-col align-center max-w-sm border-2 border-gray-400 rounded-xl p-2">
-      <div class="flex flex-row items-center justify-between mb-4">
-        <div class="flex justify-center cursor-pointer">
-          <mat-icon (click)="goToSessionList()">arrow_back</mat-icon>
-          <mat-icon (click)="openSettings()">settings</mat-icon>
-        </div>
-        <div class="flex flex-row items-center justify-center">
-          <div *ngIf="!this.serverHealth()">Server off</div>
-          <div
-            class="p-2 mx-2 rounded-[50%]"
-            [class.bg-red-700]="!this.serverHealth()"
-            [class.bg-green-700]="this.serverHealth()"
-          ></div>
-          <p>Total : {{ totalPrice().toFixed(2) }} €</p>
-        </div>
-      </div>
-
-      <video id="feedback" autoplay class="flex" [srcObject]="stream"></video>
-
-      <div class="flex flex-col max-w-sm mx-12 mt-4 bg-gray-700">
-        <div class="flex w-full items-center">
-          <div class="px-4 py-2 text-center flex items-center justify-center w-1/2 whitespace-nowrap">Total :</div>
-          <div class="px-4 py-2 text-center w-1/2">{{ collectionCompletion()['total'] }}</div>
-        </div>
-
-        <div class="flex w-full items-center">
-          <div class="px-4 py-2 text-center flex items-center justify-center w-1/2 whitespace-nowrap">Common :</div>
-          <div class="px-4 py-2 text-center w-1/2">{{ collectionCompletion()['common'] }}</div>
-        </div>
-
-        <div class="flex w-full items-center">
-          <div class="px-4 py-2 text-center flex items-center justify-center w-1/2 whitespace-nowrap">Uncommon :</div>
-          <div class="px-4 py-2 text-center w-1/2">{{ collectionCompletion()['uncommon'] }}</div>
-        </div>
-
-        <div class="flex w-full items-center">
-          <div class="px-4 py-2 text-center flex items-center justify-center w-1/2 whitespace-nowrap">Rare :</div>
-          <div class="px-4 py-2 text-center w-1/2">{{ collectionCompletion()['rare'] }}</div>
-        </div>
-
-        <div class="flex w-full items-center">
-          <div class="px-4 py-2 text-center flex items-center justify-center w-1/2 whitespace-nowrap">Mythic :</div>
-          <div class="px-4 py-2 text-center w-1/2">{{ collectionCompletion()['mythic'] }}</div>
-        </div>
-      </div>
-
-      <div class="flex justify-evenly mt-4 flex-wrap">
-        <button class="bg-blue-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1 flex-1"
-                (click)="detectCard()"
-        >
-          Ask AI
-        </button>
-        <button class="bg-green-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1 flex-1"
-                (click)="nextBooster()">
-          Next booster
-        </button>
-        <button class="bg-orange-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1 flex-1"
-                (click)="readCard()">Read
-          Card
-        </button>
-        <button class="bg-amber-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1 flex-1"
-                (click)="copyToClipboard(card())">
-          Copy to Clipboard
-        </button>
-      </div>
-
-      <div class="flex flex-col items-center justify-center mt-4">
-        <div>Stats</div>
-        <div class="flex">
-          <div class="px-4 py-2 text-center flex items-center justify-center flex-1 whitespace-nowrap">Unique cards
-            :
+    <mat-drawer-container class="flex max-w-full bg-gray-600! text-white! border-none" [hasBackdrop]="true">
+      <mat-drawer #drawer class="min-w-3xl bg-gray-600! text-white! p-3" [mode]="'over'">
+        <div class="flex flex-col w-full">
+          <div class="flex justify-end">
+            <button class="cursor-pointer" (click)="drawer.close()"><mat-icon>close</mat-icon></button>
           </div>
-          <div class="px-4 py-2 text-center flex-1">{{ collectionCompletion().total }}</div>
+          <booster-content
+            [items]="drawerItems()"
+            [canDelete]="false"
+          ></booster-content>
         </div>
-      </div>
-    </div>
 
-    @if (!loadingHistory()) {
-      <app-booster-list
-        [history]="history()"
-        [boosterId]="boosterId()"
-        (onCardClick)="handleItemClicked($event)"
-        (onBoosterClick)="boosterId.set($event)"
-        (deleteItem)="deleteItem($event)"
-        class="max-w-4xl"
-      ></app-booster-list>
-    } @else {
-      <app-loading-spinner
-        class="flex justify-center w-full max-w-4xl my-4"
-      ></app-loading-spinner>
-    }
+      </mat-drawer>
+      <mat-drawer-content class="flex! border-2 border-gray-400 rounded-xl p-2">
+        <div class="flex flex-col align-center max-w-sm border-2 border-gray-400 rounded-xl p-2">
+          <div class="flex flex-row items-center justify-between mb-4">
+            <div class="flex justify-center cursor-pointer">
+              <mat-icon (click)="goToSessionList()">arrow_back</mat-icon>
+              <mat-icon (click)="openSettings()">settings</mat-icon>
+            </div>
+            <div class="flex flex-row items-center justify-center">
+              <div *ngIf="!this.serverHealth()">Server off</div>
+              <div
+                class="p-2 mx-2 rounded-[50%]"
+                [class.bg-red-700]="!this.serverHealth()"
+                [class.bg-green-700]="this.serverHealth()"
+              ></div>
+              <p>Total : {{ totalPrice().toFixed(2) }} €</p>
+            </div>
+          </div>
 
-    <div
-      class="flex flex-col flex-1 max-h-full items-center"
-      [class.video-container]="webSocketState() === Loading.Requested"
-    >
-      <app-card-display
-        [card]="card()"
-        [loadingState]="webSocketState()"
-        [enabled]="true"
-        [currentLanguage]="config.language"
-      ></app-card-display>
-    </div>
+          <video id="feedback" autoplay class="flex" [srcObject]="stream"></video>
+
+          <div class="flex flex-col max-w-sm mx-12 mt-4 bg-gray-700">
+            <div class="flex w-full items-center">
+              <div class="px-4 py-2 text-center flex items-center justify-center w-1/2 whitespace-nowrap">Total :</div>
+              <div class="px-4 py-2 text-center w-1/2">{{ collectionCompletion()['total'] }}</div>
+            </div>
+
+            <div class="flex w-full items-center">
+              <div class="px-4 py-2 text-center flex items-center justify-center w-1/2 whitespace-nowrap">Common :</div>
+              <div class="px-4 py-2 text-center w-1/2">{{ collectionCompletion()['common'] }}</div>
+            </div>
+
+            <div class="flex w-full items-center">
+              <div class="px-4 py-2 text-center flex items-center justify-center w-1/2 whitespace-nowrap">Uncommon :</div>
+              <div class="px-4 py-2 text-center w-1/2">{{ collectionCompletion()['uncommon'] }}</div>
+            </div>
+
+            <div class="flex w-full items-center">
+              <div class="px-4 py-2 text-center flex items-center justify-center w-1/2 whitespace-nowrap">Rare :</div>
+              <div class="px-4 py-2 text-center w-1/2">{{ collectionCompletion()['rare'] }}</div>
+            </div>
+
+            <div class="flex w-full items-center">
+              <div class="px-4 py-2 text-center flex items-center justify-center w-1/2 whitespace-nowrap">Mythic :</div>
+              <div class="px-4 py-2 text-center w-1/2">{{ collectionCompletion()['mythic'] }}</div>
+            </div>
+          </div>
+
+          <div class="flex justify-evenly mt-4 flex-wrap">
+            <button class="bg-blue-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1 flex-1"
+                    (click)="detectCard()"
+            >
+              Ask AI
+            </button>
+            <button class="bg-green-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1 flex-1"
+                    (click)="nextBooster()">
+              Next booster
+            </button>
+            <button class="bg-orange-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1 flex-1"
+                    (click)="readCard()">Read
+              Card
+            </button>
+            <button class="bg-amber-500 text-white px-6 py-2 rounded-md cursor-pointer mx-2 my-1 flex-1"
+                    (click)="copyToClipboard(card())">
+              Copy to Clipboard
+            </button>
+          </div>
+
+          <div class="flex flex-col items-center justify-center mt-4">
+            <div>Stats</div>
+            <div class="flex">
+              <div class="px-4 py-2 text-center flex items-center justify-center flex-1 whitespace-nowrap">Unique cards
+                :
+              </div>
+              <div class="px-4 py-2 text-center flex-1">{{ collectionCompletion().total }}</div>
+            </div>
+            <div class="flex">
+              <div class="px-4 py-2 text-center flex items-center justify-center flex-1 whitespace-nowrap">Card Count
+                :
+              </div>
+              <div class="px-4 py-2 text-center flex-1">{{ history().length }}</div>
+            </div>
+          </div>
+
+          <div class="flex flex-col w-full items-center justify-center mt-4">
+            <button
+              class="rounded-md cursor-pointer bg-purple-500 px-6 py-2 mx-2 my-1 text-center flex-1 w-full"
+              (click)="toggleUniqueCards()"
+            >Unique cards ({{ collectionCompletion().total }})</button>
+            <button
+              class="rounded-md cursor-pointer bg-linear-65 from-yellow-500 to-orange-500 px-6 py-2 mx-2 my-1 text-center flex-1 w-full"
+              (click)="toggleRaresAndMythics()"
+            >Rares & mythics ({{collectionCompletion().rare + collectionCompletion().mythic }})</button>
+          </div>
+
+
+        </div>
+
+        @if (!loadingHistory()) {
+          <app-booster-list
+            [history]="history()"
+            [boosterId]="boosterId()"
+            [priceThreshold]="config.pricePerBooster"
+            (onCardClick)="handleItemClicked($event)"
+            (onBoosterClick)="boosterId.set($event)"
+            (deleteItem)="deleteItem($event)"
+            class="max-w-max"
+          ></app-booster-list>
+        } @else {
+          <app-loading-spinner
+            class="flex justify-center w-full max-w-max my-4"
+          ></app-loading-spinner>
+        }
+
+        <div
+          class="flex flex-col flex-1 max-h-full items-center w-full"
+          [class.video-container]="webSocketState() === Loading.Requested"
+        >
+          <app-card-display
+            [card]="card()"
+            [loadingState]="webSocketState()"
+            [enabled]="true"
+            [currentLanguage]="config.language"
+          ></app-card-display>
+        </div>
+      </mat-drawer-content>
+    </mat-drawer-container>
+
 
   `,
   host: {
@@ -179,21 +220,30 @@ export class DisplayOpeningComponent implements OnInit {
   protected readonly width: number = 300;
   protected sessionId: string = '';
 
+  @ViewChild('drawer') drawer!: MatDrawer;
   config: DisplayOpeningConfigInterface = {
     cardsPerBooster: 14, language: 'fr', pricePerBooster: 5, tts: true, autoChangeBooster: false, set: '',
   };
 
   history = signal<HistoryItem[]>([]);
+  drawerItems = signal<HistoryItem[]>([]);
   loadingHistory = signal<boolean>(false);
   currentHistoryItem = signal<HistoryItem | null>(null);
   collectionCompletion = computed(() => {
+    const countFct = (history: HistoryItem[], rarity: RarityEnum) => {
+      const newVar = [...new Set(history.filter(h => h.card.rarity === rarity).map(h => h.card.identifiers.scryfalloracleid))];
+      return newVar.length
+    }
     const history = this.history();
+    const counts = {
+      [RarityEnum.Common]: countFct(history, RarityEnum.Common),
+      [RarityEnum.Uncommon]: countFct(history, RarityEnum.Uncommon),
+      [RarityEnum.Rare]: countFct(history, RarityEnum.Rare),
+      [RarityEnum.Mythic]: countFct(history, RarityEnum.Mythic),
+    };
     return {
-      total: [...new Set(history.map(h => h.card.uuid))].length,
-      [RarityEnum.Common]: [...new Set(history.filter(h => h.card.rarity === RarityEnum.Common).map(h => h.card.uuid))].length,
-      [RarityEnum.Uncommon]: [...new Set(history.filter(h => h.card.rarity === RarityEnum.Uncommon).map(h => h.card.uuid))].length,
-      [RarityEnum.Rare]: [...new Set(history.filter(h => h.card.rarity === RarityEnum.Rare).map(h => h.card.uuid))].length,
-      [RarityEnum.Mythic]: [...new Set(history.filter(h => h.card.rarity === RarityEnum.Mythic).map(h => h.card.uuid))].length,
+      ...counts,
+      total: Object.values(counts).reduce((acc, v) => acc + v, 0),
     };
   });
   boosterId = signal<number>(1);
@@ -248,7 +298,7 @@ export class DisplayOpeningComponent implements OnInit {
   async loadSession() {
     this.loadingHistory.set(true);
     this.config = this.storage.getObject('displayOpeningConfig') as DisplayOpeningConfigInterface ?? this.config;
-    this.history.set(await lastValueFrom(this.apiWebservice.getSession(this.sessionId)));
+    this.history.set(await this.buildHistoryItemFromSession(this.sessionId));
     this.currentHistoryItem.set(this.history().at(-1) ?? null);
     this.boosterId.set(this.history().length > 0 ? this.history().at(-1)!.boosterId : 1);
     this.updateDoublonInHistory();
@@ -362,11 +412,12 @@ export class DisplayOpeningComponent implements OnInit {
       return;
     }
 
+    console.log(item.date);
     let itemToDelete = item;
     if (!itemToDelete._id) {
-      let newHistory = await lastValueFrom(this.apiWebservice.getSession(this.sessionId));
+      let newHistory = await this.buildHistoryItemFromSession(this.sessionId);
       this.history.set(newHistory);
-      const newItem = newHistory.find(h => h.date === item?.date);
+      const newItem = newHistory.find(h => Math.round(h.date / 1000) === Math.round(item?.date / 1000));
       if (!newItem) {
         console.error('Item not found in history');
         return;
@@ -447,5 +498,40 @@ export class DisplayOpeningComponent implements OnInit {
       this.config = result;
       this.storage.saveObject('displayOpeningConfig', this.config);
     });
+  }
+
+  async buildHistoryItemFromSession(sessionId: string): Promise<HistoryItem[]> {
+    const session = await lastValueFrom(this.apiWebservice.getSession(this.sessionId));
+    const cards = await lastValueFrom(this.apiWebservice.getCardFromMtgJson(session.cards.map(c => ({
+      set: c.setCode,
+      collector_number: c.number,
+    }))));
+    const historyItems: HistoryItem[] = session.cards.map((card, index) => ({
+      boosterId: parseInt(card.boosterId),
+      isDoublon: undefined,
+      date: new Date(card.createdAt).getTime(),
+      foil: card.foil ?? false,
+      _id: card.id,
+      card: cards.find(c => c.setcode === card.setCode && parseInt(c.number) === parseInt(card.number))!,
+    }));
+    return historyItems;
+  }
+
+  toggleUniqueCards() {
+    this.drawerItems.set(
+      this.history()
+        .filter(h => !h.isDoublon)
+        .sort((a, b) => getCardPrice(a.card) - getCardPrice(b.card))
+    );
+    this.drawer.open();
+  }
+
+  toggleRaresAndMythics() {
+    this.drawerItems.set(
+      this.history()
+        .filter(h => (h.card.rarity === RarityEnum.Rare || h.card.rarity === RarityEnum.Mythic) && !h.isDoublon)
+        .sort((a, b) => getCardPrice(a.card) - getCardPrice(b.card))
+    );
+    this.drawer.open();
   }
 }

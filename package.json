@@ -4,6 +4,7 @@
     "packages/*"
   ],
   "scripts": {
+    "install": "turbo run install",
     "start": "turbo run launch",
     "launch": "turbo run launch"
   },

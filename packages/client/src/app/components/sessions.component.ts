@@ -15,9 +15,9 @@ import { MatIcon } from '@angular/material/icon';
   template: `
     <table mat-table [dataSource]="sessions()" class="mat-elevation-z8">
 
-      <ng-container matColumnDef="sessionId">
+      <ng-container matColumnDef="id">
         <th mat-header-cell *matHeaderCellDef> Id</th>
-        <td mat-cell *matCellDef="let element" (click)="goToSession(element)"> {{ element.sessionId }}</td>
+        <td mat-cell *matCellDef="let element" (click)="goToSession(element)"> {{ element.id }}</td>
       </ng-container>
 
       <ng-container matColumnDef="type">
@@ -65,7 +65,7 @@ export class SessionsComponent implements OnInit {
   protected router = inject(Router);
   protected apiWebservice = inject(ApiService);
   readonly dialog = inject(MatDialog);
-  protected readonly displayedColumns: string[] = ['sessionId', 'name', 'type', 'card_count', 'booster_count', 'edit'];
+  protected readonly displayedColumns: string[] = ['id', 'name', 'type', 'card_count', 'booster_count', 'edit'];
 
   sessions = signal<Session[]>([]);
 
@@ -74,11 +74,12 @@ export class SessionsComponent implements OnInit {
   ngOnInit() {
     this.apiService.getSessions().subscribe((sessions) => {
       this.sessions.set(sessions);
+      console.log('sessions', this.sessions());
     });
   }
 
   async goToSession(session: Session) {
-    await this.router.navigate(['/session', session.sessionId]);
+    await this.router.navigate(['/session', session.id]);
   }
 
   openDialog(session?: Session) {
@@ -93,8 +94,8 @@ export class SessionsComponent implements OnInit {
     dialogRef.afterClosed().subscribe((result) => {
       if (!!result) {
         if (session) {
-          this.apiWebservice.updateSession({ sessionId: session.sessionId, name: result.sessionName, type: result.sessionType }).subscribe(() => {
-            this.sessions.update((sessions) => sessions.map((s) => s.sessionId === session.sessionId ? { ...s, name: result.sessionName, type: result.sessionType } : s));
+          this.apiWebservice.updateSession({ sessionId: session.id, name: result.sessionName, type: result.sessionType }).subscribe(() => {
+            this.sessions.update((sessions) => sessions.map((s) => s.id === session.id ? { ...s, name: result.sessionName, type: result.sessionType } : s));
           });
         } else {
           this.apiWebservice.createSession({ name: result.sessionName, type: result.sessionType }).subscribe((session) => {

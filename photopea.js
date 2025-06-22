@@ -1,3 +1,15 @@
+let cardsUri = [
+  'https://cards.scryfall.io/png/front/0/b/0b420ce8-3dd1-430b-a090-4b4e8dcb6aa9.png?1726285260',
+  'https://cards.scryfall.io/png/front/d/9/d9f12481-e4dd-4a44-910f-e0d263de14ae.png?1730487195',
+  'https://cards.scryfall.io/png/front/5/5/55127a25-dc64-4f26-ae50-ed7247c22ae6.png?1717950783',
+  'https://cards.scryfall.io/png/front/0/7/07b4a6dd-0e2f-43be-93c6-7578c34a9443.png?1712354997',
+  'https://cards.scryfall.io/png/front/e/1/e18748ce-e52e-4cd1-89d4-cd2578a0d574.png?1730491238',
+  'https://cards.scryfall.io/png/front/5/1/51e0191b-9cd3-466c-8ff8-94c7872746f5.png?1743207460',
+  'https://cards.scryfall.io/png/front/d/4/d44bccbf-6fab-46e4-8ddb-6577e27ec6e8.png?1743205033',
+  'https://cards.scryfall.io/png/front/a/4/a485edea-07cd-48dd-97e7-daeba85553d6.png?1743206653',
+  'https://cards.scryfall.io/png/front/7/2/7215460e-8c06-47d0-94e5-d1832d0218af.png?1742651318',
+];
+
 const shocklands = [
   "https://cards.scryfall.io/png/front/6/e/6e86eb36-f4cc-4a75-b43a-4dee463a3b33.png?1702429828",
   "https://cards.scryfall.io/png/front/1/8/18d2e383-d380-4d18-8aad-bd8ea093a16c.png?1702429828",
@@ -30,27 +42,17 @@ function load() {
     app.activeDocument.close();
   }
   app.documents.add(width, height, dpi, "Planche", NewDocumentMode.RGB, DocumentFill.TRANSPARENT, 1);
-  let files = [
-    "https://cards.scryfall.io/png/front/6/e/6e86eb36-f4cc-4a75-b43a-4dee463a3b33.png?1702429828",
-    "https://cards.scryfall.io/png/front/6/e/6e86eb36-f4cc-4a75-b43a-4dee463a3b33.png?1702429828",
-    "https://cards.scryfall.io/png/front/6/e/6e86eb36-f4cc-4a75-b43a-4dee463a3b33.png?1702429828",
-    "https://cards.scryfall.io/png/front/6/e/6e86eb36-f4cc-4a75-b43a-4dee463a3b33.png?1702429828",
-    "https://cards.scryfall.io/png/front/6/e/6e86eb36-f4cc-4a75-b43a-4dee463a3b33.png?1702429828",
-    "https://cards.scryfall.io/png/front/6/e/6e86eb36-f4cc-4a75-b43a-4dee463a3b33.png?1702429828",
-    "https://cards.scryfall.io/png/front/6/e/6e86eb36-f4cc-4a75-b43a-4dee463a3b33.png?1702429828",
-    "https://cards.scryfall.io/png/front/6/e/6e86eb36-f4cc-4a75-b43a-4dee463a3b33.png?1702429828",
-    "https://cards.scryfall.io/png/front/6/e/6e86eb36-f4cc-4a75-b43a-4dee463a3b33.png?1702429828",
-  ];
 
-  app.open(files[0], null, true);pauseScript(100);
-  app.open(files[1], null, true);pauseScript(100);
-  app.open(files[2], null, true);pauseScript(100);
-  app.open(files[3], null, true);pauseScript(100);
-  app.open(files[4], null, true);pauseScript(100);
-  app.open(files[5], null, true);pauseScript(100);
-  app.open(files[6], null, true);pauseScript(100);
-  app.open(files[7], null, true);pauseScript(100);
-  app.open(files[8], null, true);pauseScript(100);
+
+  app.open(cardsUri[0], null, true);pauseScript(100);
+  app.open(cardsUri[1], null, true);pauseScript(100);
+  app.open(cardsUri[2], null, true);pauseScript(100);
+  app.open(cardsUri[3], null, true);pauseScript(100);
+  app.open(cardsUri[4], null, true);pauseScript(100);
+  app.open(cardsUri[5], null, true);pauseScript(100);
+  app.open(cardsUri[6], null, true);pauseScript(100);
+  app.open(cardsUri[7], null, true);pauseScript(100);
+  app.open(cardsUri[8], null, true);pauseScript(100);
 }
 
 function ram() {

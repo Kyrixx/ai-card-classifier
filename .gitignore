@@ -1,6 +1,7 @@
 node_modules/
 **/.env
 packages/server/assets/**/*.jpg
+packages/server/prisma/generated
 **/*.pem
 **/*.cer
 **/dist
@@ -9,10 +10,11 @@ packages/server/assets/**/*.jpg
 .idea/dataSources.xml
 certs/**
 **/*.sqlite
-!packages/server/assets/db/empty_collection.sqlite
+!packages/server-old/assets/db/empty_collection.sqlite
 **/*.sqlite-shm
 **/*.sqlite-wal
 video.webm
+.docker.env
 
 
 # User-specific stuff
