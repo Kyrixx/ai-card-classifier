@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { DisplayOpeningComponent } from './app/components/display-opening.component';
 import { SessionsComponent } from './app/components/sessions.component';
 import { DeckComponent } from './app/components/deck.component';
+import { PrinterComponent } from './app/components/printer.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: 'sessions', pathMatch: 'full' },
@@ -9,4 +10,5 @@ export const routes: Routes = [
   { path: 'session/:sessionId', component: DisplayOpeningComponent },
   { path: 'sessions', component: SessionsComponent },
   { path: 'deck', component: DeckComponent },
+  { path: 'printer', component: PrinterComponent },
 ];
