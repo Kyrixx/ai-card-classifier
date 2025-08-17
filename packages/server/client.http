@@ -1,10 +1,6 @@
 @base_url = https://localhost:3100
 ### GET Card Count
-GET {{base_url}}/set/TDM/card-count
-Accept: application/json
-
-### GET Scryfall Sets
-GET {{base_url}}/set/scryfall-sets
+GET {{base_url}}/set/FIN/card-count
 Accept: application/json
 
 ### Post card
@@ -36,11 +32,12 @@ POST {{base_url}}/session
 Content-Type: application/json
 
 {
-    "type": "display_opening"
+    "type": "display_opening",
+    "name": "toBeDeleted"
 }
 
 ### Get session
-GET {{base_url}}/session/0bt2x95692dp
+GET {{base_url}}/session/4g9kbqzhowq
 Accept: application/json
 
 ### Update price version
@@ -58,8 +55,22 @@ DELETE {{base_url}}/session
 Accept: application/json
 
 ### Get thread count
-GET {{base_url}}/thread-count
+GET {{base_url}}/processor/thread-count
 Accept: application/json
+
+### Update sets for card recognition
+PATCH {{base_url}}/processor/update-sets
+Content-Type: application/json
+
+{
+  "sets": [
+    "FIN",
+    "EOE",
+    "FIC",
+    "EOC"
+  ]
+}
+
 
 ### fix collection
 PATCH {{base_url}}/collection/fix
@@ -71,7 +82,16 @@ Content-Type: application/json
 GET {{base_url}}/collection/prices
 
 ### collection by set
-GET {{base_url}}/collection/by-set?setCode=TDM
+GET {{base_url}}/collection/by-set?set=FIN
 
 ### missing in collection by set
-GET {{base_url}}/collection/missing?setCode=TDM
+GET {{base_url}}/collection/missing?setCode=FIN
+
+### Get mtg json cards
+GET {{base_url}}/card?q=fin-381
+
+### Get card by name
+GET {{base_url}}/card/by-name?name=Propaganda
+
+### Get set in collection
+GET {{base_url}}/collection/by-set?set=DFT

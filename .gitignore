@@ -1,6 +1,6 @@
 node_modules/
 **/.env
-packages/server/assets/**/*.jpg
+packages/server/assets/
 packages/server/prisma/generated
 **/*.pem
 **/*.cer

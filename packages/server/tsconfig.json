@@ -1,19 +1,29 @@
 {
   "compilerOptions": {
-    "target": "es2016",
     "module": "commonjs",
-    "strict": true,
-    "esModuleInterop": true,
-    "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true,
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "sourceMap": true,
+    "declaration": true,
     "removeComments": true,
-    "resolveJsonModule": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
     "allowSyntheticDefaultImports": true,
-    "noImplicitAny": false
-  },
-  "include": ["src/**/*.ts"],
-  "exclude": ["node_modules", "dist", "test"]
+    "target": "ES2023",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "incremental": true,
+    "skipLibCheck": true,
+    "strictNullChecks": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitAny": false,
+    "strictBindCallApply": false,
+    "noFallthroughCasesInSwitch": false,
+    "paths": {
+      "@clients/*": ["./src/clients/*"],
+      "@environment": ["./src/environment.ts"],
+      "@controllers/*": ["./src/controllers/*"],
+      "@services/*": ["./src/services/*"],
+      "@models/*": ["./src/models/*"],
+      "@prisma-client/*": ["./prisma/generated/*"]
+    }
+  }
 }
