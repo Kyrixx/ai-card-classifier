@@ -1,0 +1,363 @@
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../generated/mtgjson"
+  previewFeatures = ["typedSql"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("PRISMA_CARDS_URL")
+}
+
+model cardforeigndata {
+  id           Int     @id @default(autoincrement())
+  facename     String?
+  flavortext   String?
+  identifiers  String?
+  language     String?
+  multiverseid Int?
+  name         String?
+  text         String?
+  type         String?
+  uuid         String?
+
+  @@index([uuid], map: "cardforeigndata_uuid")
+}
+
+model cardidentifiers {
+  id                       Int     @id @default(autoincrement())
+  cardkingdometchedid      String?
+  cardkingdomfoilid        String?
+  cardkingdomid            String?
+  cardspherefoilid         String?
+  cardsphereid             String?
+  deckboxid                String?
+  mcmid                    String?
+  mcmmetaid                String?
+  mtgarenaid               String?
+  mtgjsonfoilversionid     String?
+  mtgjsonnonfoilversionid  String?
+  mtgjsonv4id              String?
+  mtgofoilid               String?
+  mtgoid                   String?
+  multiverseid             String?
+  scryfallcardbackid       String?
+  scryfallid               String?
+  scryfallillustrationid   String?
+  scryfalloracleid         String?
+  tcgplayeretchedproductid String?
+  tcgplayerproductid       String?
+  uuid                     String?
+
+  @@index([uuid], map: "cardidentifiers_uuid")
+}
+
+model cardlegalities {
+  id              Int     @id @default(autoincrement())
+  alchemy         String?
+  brawl           String?
+  commander       String?
+  duel            String?
+  future          String?
+  gladiator       String?
+  historic        String?
+  legacy          String?
+  modern          String?
+  oathbreaker     String?
+  oldschool       String?
+  pauper          String?
+  paupercommander String?
+  penny           String?
+  pioneer         String?
+  predh           String?
+  premodern       String?
+  standard        String?
+  standardbrawl   String?
+  timeless        String?
+  uuid            String?
+  vintage         String?
+
+  @@index([uuid], map: "cardlegalities_uuid")
+}
+
+model cardpurchaseurls {
+  id                Int     @id @default(autoincrement())
+  cardkingdom       String?
+  cardkingdometched String?
+  cardkingdomfoil   String?
+  cardmarket        String?
+  tcgplayer         String?
+  tcgplayeretched   String?
+  uuid              String?
+
+  @@index([uuid], map: "cardpurchaseurls_uuid")
+}
+
+model cardrulings {
+  id   Int       @id @default(autoincrement())
+  date DateTime? @db.Date
+  text String?
+  uuid String    @db.VarChar(36)
+
+  @@index([uuid], map: "cardrulings_uuid")
+}
+
+model cards {
+  id                      Int      @id @default(autoincrement())
+  artist                  String?
+  artistids               String?
+  asciiname               String?
+  attractionlights        String?
+  availability            String?
+  boostertypes            String?
+  bordercolor             String?
+  cardparts               String?
+  coloridentity           String?
+  colorindicator          String?
+  colors                  String?
+  defense                 String?
+  dueldeck                String?
+  edhrecrank              Int?
+  edhrecsaltiness         Float?
+  faceconvertedmanacost   Float?
+  faceflavorname          String?
+  facemanavalue           Float?
+  facename                String?
+  finishes                String?
+  flavorname              String?
+  flavortext              String?
+  frameeffects            String?
+  frameversion            String?
+  hand                    String?
+  hasalternativedecklimit Boolean?
+  hascontentwarning       Boolean?
+  hasfoil                 Boolean?
+  hasnonfoil              Boolean?
+  isalternative           Boolean?
+  isfullart               Boolean?
+  isfunny                 Boolean?
+  isgamechanger           Boolean?
+  isonlineonly            Boolean?
+  isoversized             Boolean?
+  ispromo                 Boolean?
+  isrebalanced            Boolean?
+  isreprint               Boolean?
+  isreserved              Boolean?
+  isstarter               Boolean?
+  isstoryspotlight        Boolean?
+  istextless              Boolean?
+  istimeshifted           Boolean?
+  keywords                String?
+  language                String?
+  layout                  String?
+  leadershipskills        String?
+  life                    String?
+  loyalty                 String?
+  manacost                String?
+  manavalue               Float?
+  name                    String?
+  number                  String?
+  originalprintings       String?
+  originalreleasedate     String?
+  originaltext            String?
+  otherfaceids            String?
+  power                   String?
+  printings               String?
+  promotypes              String?
+  rarity                  String?
+  rebalancedprintings     String?
+  relatedcards            String?
+  securitystamp           String?
+  setcode                 String?
+  side                    String?
+  signature               String?
+  sourceproducts          String?
+  subsets                 String?
+  subtypes                String?
+  supertypes              String?
+  text                    String?
+  toughness               String?
+  type                    String?
+  types                   String?
+  uuid                    String   @db.VarChar(36)
+  variations              String?
+  watermark               String?
+
+  @@index([uuid], map: "cards_uuid")
+}
+
+model meta {
+  id      Int       @id @default(autoincrement())
+  date    DateTime? @db.Date
+  version String?
+}
+
+model setboostercontents {
+  id           Int     @id @default(autoincrement())
+  boosterindex Int?
+  boostername  String? @db.VarChar(255)
+  setcode      String? @db.VarChar(20)
+  sheetname    String? @db.VarChar(255)
+  sheetpicks   Int?
+
+  @@unique([setcode, sheetname, boostername, boosterindex])
+}
+
+model setboostercontentweights {
+  id            Int     @id @default(autoincrement())
+  boosterindex  Int?
+  boostername   String? @db.VarChar(255)
+  boosterweight Int?
+  setcode       String? @db.VarChar(20)
+}
+
+model setboostersheetcards {
+  id          Int     @id @default(autoincrement())
+  boostername String? @db.VarChar(255)
+  carduuid    String  @db.VarChar(36)
+  cardweight  BigInt?
+  setcode     String? @db.VarChar(20)
+  sheetname   String? @db.VarChar(255)
+
+  @@unique([setcode, sheetname, boostername, carduuid])
+}
+
+model setboostersheets {
+  id                    Int      @id @default(autoincrement())
+  boostername           String?  @db.VarChar(255)
+  setcode               String?  @db.VarChar(20)
+  sheethasbalancecolors Boolean?
+  sheetisfoil           Boolean?
+  sheetname             String?  @db.VarChar(255)
+
+  @@unique([setcode, sheetname, boostername])
+}
+
+model sets {
+  id               Int      @id @default(autoincrement())
+  basesetsize      Int?
+  block            String?
+  cardspheresetid  Int?
+  code             String   @unique @db.VarChar(8)
+  isfoilonly       Boolean?
+  isforeignonly    Boolean?
+  isnonfoilonly    Boolean?
+  isonlineonly     Boolean?
+  ispartialpreview Boolean?
+  keyrunecode      String?
+  languages        String?
+  mcmid            Int?
+  mcmidextras      Int?
+  mcmname          String?
+  mtgocode         String?
+  name             String?
+  parentcode       String?
+  releasedate      String?
+  tcgplayergroupid Int?
+  tokensetcode     String?
+  totalsetsize     Int?
+  type             String?
+}
+
+model settranslations {
+  id          Int     @id @default(autoincrement())
+  language    String?
+  setcode     String? @db.VarChar(20)
+  translation String?
+}
+
+model tokenidentifiers {
+  id                       Int     @id @default(autoincrement())
+  cardkingdometchedid      String?
+  cardkingdomfoilid        String?
+  cardkingdomid            String?
+  cardspherefoilid         String?
+  cardsphereid             String?
+  deckboxid                String?
+  mcmid                    String?
+  mcmmetaid                String?
+  mtgarenaid               String?
+  mtgjsonfoilversionid     String?
+  mtgjsonnonfoilversionid  String?
+  mtgjsonv4id              String?
+  mtgofoilid               String?
+  mtgoid                   String?
+  multiverseid             String?
+  scryfallcardbackid       String?
+  scryfallid               String?
+  scryfallillustrationid   String?
+  scryfalloracleid         String?
+  tcgplayeretchedproductid String?
+  tcgplayerproductid       String?
+  uuid                     String?
+
+  @@index([uuid], map: "tokenidentifiers_uuid")
+}
+
+model tokens {
+  id              Int      @id @default(autoincrement())
+  artist          String?
+  artistids       String?
+  asciiname       String?
+  availability    String?
+  boostertypes    String?
+  bordercolor     String?
+  coloridentity   String?
+  colors          String?
+  edhrecsaltiness Float?
+  facename        String?
+  finishes        String?
+  flavorname      String?
+  flavortext      String?
+  frameeffects    String?
+  frameversion    String?
+  hasfoil         Boolean?
+  hasnonfoil      Boolean?
+  isfullart       Boolean?
+  isfunny         Boolean?
+  isoversized     Boolean?
+  ispromo         Boolean?
+  isreprint       Boolean?
+  istextless      Boolean?
+  keywords        String?
+  language        String?
+  layout          String?
+  manacost        String?
+  name            String?
+  number          String?
+  orientation     String?
+  originaltext    String?
+  otherfaceids    String?
+  power           String?
+  promotypes      String?
+  relatedcards    String?
+  reverserelated  String?
+  securitystamp   String?
+  setcode         String?
+  side            String?
+  signature       String?
+  subtypes        String?
+  supertypes      String?
+  text            String?
+  toughness       String?
+  type            String?
+  types           String?
+  uuid            String   @db.VarChar(36)
+  watermark       String?
+
+  @@index([uuid], map: "tokens_uuid")
+}
+
+model cardprices {
+  id               Int       @id @default(autoincrement())
+  cardfinish       String?   @db.VarChar(15)
+  currency         String?   @db.VarChar(10)
+  date             DateTime? @db.Date
+  gameavailability String?   @db.VarChar(15)
+  price            Float?
+  priceprovider    String?   @db.VarChar(20)
+  providerlisting  String?   @db.VarChar(15)
+  uuid             String    @db.VarChar(36)
+
+  @@index([uuid], map: "cardprices_uuid")
+}

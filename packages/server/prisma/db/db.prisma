@@ -1,0 +1,29 @@
+generator client {
+  provider        = "prisma-client-js"
+  output          = "../generated/db"
+  previewFeatures = ["typedSql"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("PRISMA_DB_URL")
+}
+
+model cards {
+  id        Int       @id @default(autoincrement()) @map("_id")
+  uuid      String
+  createdAt String
+  sessionId String?
+  boosterId Int
+  setCode   String
+  number    Int
+  foil      Int?
+  sessions  sessions? @relation(fields: [sessionId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "FK_3b6063643c4412a5b403b08337c")
+}
+
+model sessions {
+  id    String  @id
+  type  String
+  name  String?
+  cards cards[]
+}
