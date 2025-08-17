@@ -26,4 +26,10 @@ export class AudioService {
     audio.volume = 0.4;
     await audio.play();
   }
+
+  static async error() {
+    const audio = new Audio('audio/error.mp3');
+    audio.volume = 0.4;
+    await audio.play();
+  }
 }

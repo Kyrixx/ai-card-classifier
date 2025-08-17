@@ -22,6 +22,7 @@ import { DisplayOpeningConfigDialogComponent } from './widgets/display-opening-c
 import { DisplayOpeningConfigInterface } from '../models/config';
 import { MatDrawer, MatSidenavModule } from '@angular/material/sidenav';
 import { BoosterContentComponent } from './widgets/booster-content.component';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-layout',
@@ -33,6 +34,7 @@ import { BoosterContentComponent } from './widgets/booster-content.component';
     NgIf,
     MatSidenavModule,
     BoosterContentComponent,
+    MatTooltipModule,
   ],
   template: `
     <mat-drawer-container class="flex max-w-full bg-gray-600! text-white! border-none" [hasBackdrop]="true">
@@ -54,6 +56,11 @@ import { BoosterContentComponent } from './widgets/booster-content.component';
             <div class="flex justify-center cursor-pointer">
               <mat-icon (click)="goToSessionList()">arrow_back</mat-icon>
               <mat-icon (click)="openSettings()">settings</mat-icon>
+              <mat-icon
+                class="mx-1"
+                matTooltip="Update sets for recognition"
+                matTooltipPosition="below"
+              >featured_play_list</mat-icon>
             </div>
             <div class="flex flex-row items-center justify-center">
               <div *ngIf="!this.serverHealth()">Server off</div>
@@ -342,9 +349,10 @@ export class DisplayOpeningComponent implements OnInit {
       this.webSocketState.set(Loading.Finished);
     });
 
-    this.websocket.on(this.WebSocketEvent[Loading.Error], () => {
+    this.websocket.on(this.WebSocketEvent[Loading.Error], async () => {
       this.webSocketState.set(Loading.Error);
       this.currentHistoryItem.set(null);
+      await AudioService.error();
     });
   }
 
