@@ -25,16 +25,12 @@ export class SessionController {
   }
 
   @Get('/:id')
-  async getSession(@Param('id') id: string) {
+  async getSession(@Param('id') id: string): Promise<any> {
     const session: any = await this.dbRepository.getSession(id);
-    const cards = session.cards.map(
-      (card) =>
-        ({ set: card.setCode, collector_number: card.number }) as {
-          set: string;
-          collector_number: number;
-        },
-    );
-    return this.cardService.getCardsFromMtgJson(cards);
+    if (!session) {
+      throw new Error('Session not found');
+    }
+    return session;
   }
 
   @Delete('/')

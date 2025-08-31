@@ -33,11 +33,11 @@ export class CardService {
   }
 
   async getCardsFromMtgJson(
-    cards: { set: string; collector_number: number }[],
+    cards: { setcode: string; number: number }[],
   ): Promise<any[]> {
     return await Promise.all(
       cards.map((card) =>
-        this.getCardFromMtgJson(card.set, card.collector_number),
+        this.getCardFromMtgJson(card.setcode, card.number),
       ),
     );
   }

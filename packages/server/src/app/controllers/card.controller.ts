@@ -16,30 +16,26 @@ export class CardController {
     }
     const cardQueryList = query
       .split(',')
-      .map((q) => ({ setCode: q.split('-')[0], number: q.split('-')[1] }))
+      .map((q) => ({ setcode: q.split('-')[0], number: q.split('-')[1] }))
       .filter(
         (value, index, self) =>
           index ===
           self.findIndex(
-            (t) => t.setCode === value.setCode && t.number === value.number,
+            (t) => t.setcode === value.setcode && t.number === value.number,
           ),
       );
 
-    const cards: any = [];
     for (const cardQuery of cardQueryList) {
-      if (cardQuery.setCode.length !== 3 || cardQuery.number.length < 1) {
+      if (cardQuery.setcode.length !== 3 || cardQuery.number.length < 1) {
         throw new Error('Invalid query:' + JSON.stringify(cardQuery));
       }
-
-      const card = await this.cardService.getCardFromMtgJson(
-        cardQuery.setCode,
-        parseInt(cardQuery.number),
-      );
-      if (!card) {
-        throw new Error('Card not found');
-      }
-      cards.push(card);
     }
+    const cards: any = await this.cardService.getCardsFromMtgJson(
+      cardQueryList.map((c) => ({
+        setcode: c.setcode,
+        number: parseInt(c.number),
+      })),
+    );
 
     return cards;
   }
