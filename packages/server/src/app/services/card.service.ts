@@ -32,6 +32,16 @@ export class CardService {
     }
   }
 
+  async getCardsFromMtgJson(
+    cards: { set: string; collector_number: number }[],
+  ): Promise<any[]> {
+    return await Promise.all(
+      cards.map((card) =>
+        this.getCardFromMtgJson(card.set, card.collector_number),
+      ),
+    );
+  }
+
   async getCardsByName(name: string) {
     if (!name || name.trim().length === 0) {
       return [];

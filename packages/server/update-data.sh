@@ -1,5 +1,12 @@
 source .env
 
+# Check Postgres connection
+PGPASSWORD=$POSTGRES_PASSWORD psql -h $POSTGRES_HOST -U $POSTGRES_USER -c "\q"
+if [ $? -ne 0 ]; then
+  echo "Failed to connect to Postgres database. Please check your credentials."
+  exit 1
+fi
+
 wget https://mtgjson.com/api/v5/AllPrintings.psql.zip
 wget https://mtgjson.com/api/v5/AllPricesToday.psql.zip
 if [ $? -ne 0 ]; then

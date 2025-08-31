@@ -27,15 +27,14 @@ export class SessionController {
   @Get('/:id')
   async getSession(@Param('id') id: string) {
     const session: any = await this.dbRepository.getSession(id);
-    const completeCards: any[] = [];
-    for (const card of session.cards) {
-      completeCards.push(
-        await this.cardService.getCardFromMtgJson(card.setCode, card.number),
-      );
-    }
-
-    return session;
-    // return { ...session, cards: completeCards };
+    const cards = session.cards.map(
+      (card) =>
+        ({ set: card.setCode, collector_number: card.number }) as {
+          set: string;
+          collector_number: number;
+        },
+    );
+    return this.cardService.getCardsFromMtgJson(cards);
   }
 
   @Delete('/')

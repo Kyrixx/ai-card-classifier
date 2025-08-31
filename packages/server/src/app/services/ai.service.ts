@@ -71,9 +71,10 @@ export class AiService {
     You MUST find the card name at the top of the card.
     You MUST find the set code at the bottom left of the card.
     You MUST find the collector number at the bottom left of the card.
-    You MUST find the foil attribute at the bottom left of the card, next to the set code.
+    You MUST find the foil attribute at the bottom left of the card, next to the set code. 
+    The card is considered foil if it has a star next to the set code, and non foil if it has a dot next to the set code.
     
-    Then, error should be false.
+    If you have found at least one of these attributes, then error MUST be equal to false
     `;
 
     emit('waiting_ai');

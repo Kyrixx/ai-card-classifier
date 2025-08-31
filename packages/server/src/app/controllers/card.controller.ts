@@ -28,7 +28,7 @@ export class CardController {
     const cards: any = [];
     for (const cardQuery of cardQueryList) {
       if (cardQuery.setCode.length !== 3 || cardQuery.number.length < 1) {
-        throw new Error('Invalid query');
+        throw new Error('Invalid query:' + JSON.stringify(cardQuery));
       }
 
       const card = await this.cardService.getCardFromMtgJson(

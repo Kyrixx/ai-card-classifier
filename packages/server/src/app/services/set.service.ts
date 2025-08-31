@@ -5,7 +5,7 @@ import { MtgJsonRepository } from '../repositories/mtg-json.repository';
 export class SetService {
   private readonly logger = new Logger(SetService.name);
   private setCodeList: string[] = [];
-  private forcedSetCodeList: string[] = [];
+  private forcedSetCodeList: string[] = ['FIN', 'FIC', 'FCA'];
 
   constructor(private readonly mtgJsonRepository: MtgJsonRepository) {
     if (this.forcedSetCodeList.length === 0) {

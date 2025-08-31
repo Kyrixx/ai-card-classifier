@@ -37,7 +37,7 @@ Content-Type: application/json
 }
 
 ### Get session
-GET {{base_url}}/session/4g9kbqzhowq
+GET {{base_url}}/session/0bt2x95692dp
 Accept: application/json
 
 ### Update price version
@@ -65,9 +65,7 @@ Content-Type: application/json
 {
   "sets": [
     "FIN",
-    "EOE",
-    "FIC",
-    "EOC"
+    "FIC"
   ]
 }
 
@@ -88,7 +86,7 @@ GET {{base_url}}/collection/by-set?set=FIN
 GET {{base_url}}/collection/missing?setCode=FIN
 
 ### Get mtg json cards
-GET {{base_url}}/card?q=fin-381
+GET {{base_url}}/card?q=sld-75,fdn-150,ktk-216,tdm-37,snc-464,cma-30,c16-245,jmp-10,dft-40,znr-49,fic-379,lcc-325,fdn-238,mh3-56,cmr-63,snc-38,mkc-257,eld-42,dsk-94,a25-54,kld-44,m3c-181,clb-842,drc-152,xln-57,mh2-44,pip-175,sok-38,5ed-91,dsk-260,scd-265,ori-228,c16-112,zen-47,rtr-40,eld-50,ltr-56,vow-399,one-57,cmd-253,znr-67,gtc-178,nph-144,clb-357,m3c-201,c20-292,lcc-344,clb-764,pip-47,neo-271,mm3-178,ktk-239,acr-85,gtc-189,dft-57,znr-75,clb-771,all-129,mid-267,cns-204,lcc-355,2xm-326,tdm-282,inr-89,dsc-303,lci-319,dsk-66,fin-85,rna-57,lrw-263,mkc-142,emn-109,mkm-270,drc-181,vow-135,dft-72,uma-81,m15-83,dmr-240,rna-59,rav-286,ddm-46
 
 ### Get card by name
 GET {{base_url}}/card/by-name?name=Propaganda
